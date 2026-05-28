@@ -1,5 +1,5 @@
 ---
-name: media-tagger
+name: music-tagger
 description: Batch update media file metadata (tags) using ffmpeg. Use when needing to update artist, album, or other ID3 tags for multiple files.
 version: 1.0.0
 triggers:

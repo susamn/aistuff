@@ -1,6 +1,11 @@
 ---
 name: skill-creator
 description: Guide for creating effective skills that extend different agents' capabilities. Use when creating new skills or updating existing skills with specialized knowledge, workflows, or tool integrations.
+version: 1.0.0
+triggers:
+  - "create a new skill"
+  - "add a skill"
+intent: meta
 ---
 
 # Skill Creator

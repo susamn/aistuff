@@ -1,6 +1,11 @@
 ---
 name: obsidian
 description: Work with Obsidian vaults (plain Markdown notes) and automate via obsidian-cli.
+version: 1.0.0
+triggers:
+  - "work with obsidian"
+  - "notes in obsidian"
+intent: notes
 resources:
   - ./local/bin/obsidian-cli
 tools:
