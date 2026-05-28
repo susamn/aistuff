@@ -1,3 +1,19 @@
+# Global Guidelines 
+
+Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
+
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
+
+**Don't assume. Don't hide confusion. Surface tradeoffs that are real. Don't try to make me happy, if you think otherwise, elaborate.**
+
+Before implementing:
+
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
+- Ask questions, while not being stubborn or obnoxious trying to proof your point or raise a point just for the sake of it.
+
 # Agent Context
 
 This file gives you context about the user's environment and available tooling.
@@ -19,20 +35,19 @@ When inside a repository:
 These are exported in every shell session and must be used when referencing scripts
 or tools — never hardcode absolute paths.
 
-| Variable | Path | Notes |
-|---|---|---|
-| `$WORKSPACE_PATH` | `~/workspace` | The folder that contains codebase, scripts, tools, services, install, and sdk |
-| `$SCRIPTS_PATH` | `~/workspace/scripts` | Contains scripts and scripts must be invoked using this path |
-| `$TOOLS_PATH` | `~/workspace/tools` | Contains tools and tools must be invoked using this path |
-| `$SERVICES_PATH` | `~/workspace/services` | Contains services |
-| `$INSTALL_PATH` | `~/workspace/install` | Contains install scripts |
-| `$SDK_PATH` | `~/workspace/sdk` | Contains sdk |
-| `$M2_HOME` | `~/workspace/sdk/repositories/m2` | Contains maven cache |
-| `$CARGO_HOME` | `~/workspace/sdk/repositories/cargo` | Contains cargo cache |
-| `$NPM_CONFIG_CACHE` | `~/workspace/sdk/repositories/npm` | Contains npm cache |
-| `$PIP_CACHE_DIR` | `~/workspace/sdk/repositories/pip` | Contains pip cache |
-| `$GOPATH` | `~/workspace/sdk/repositories/gopath` | Contains go cache |
-
+| Variable            | Path                                  | Notes                                                                         |
+| ------------------- | ------------------------------------- | ----------------------------------------------------------------------------- |
+| `$WORKSPACE_PATH`   | `~/workspace`                         | The folder that contains codebase, scripts, tools, services, install, and sdk |
+| `$SCRIPTS_PATH`     | `~/workspace/scripts`                 | Contains scripts and scripts must be invoked using this path                  |
+| `$TOOLS_PATH`       | `~/workspace/tools`                   | Contains tools and tools must be invoked using this path                      |
+| `$SERVICES_PATH`    | `~/workspace/services`                | Contains services                                                             |
+| `$INSTALL_PATH`     | `~/workspace/install`                 | Contains install scripts                                                      |
+| `$SDK_PATH`         | `~/workspace/sdk`                     | Contains sdk                                                                  |
+| `$M2_HOME`          | `~/workspace/sdk/repositories/m2`     | Contains maven cache                                                          |
+| `$CARGO_HOME`       | `~/workspace/sdk/repositories/cargo`  | Contains cargo cache                                                          |
+| `$NPM_CONFIG_CACHE` | `~/workspace/sdk/repositories/npm`    | Contains npm cache                                                            |
+| `$PIP_CACHE_DIR`    | `~/workspace/sdk/repositories/pip`    | Contains pip cache                                                            |
+| `$GOPATH`           | `~/workspace/sdk/repositories/gopath` | Contains go cache                                                             |
 
 ---
 
@@ -42,21 +57,23 @@ Skills are modular packages. Skill-specific scripts are stored within the skill 
 
 **Rule for accessing skill scripts:** All skill resources are located at `{{AGENT_SKILLS_PATH}}/<skill-name>/`. When a skill references a script like `<SKILL_PATH>/scripts/run.sh` or `./scripts/run.sh` or `scripts/run.sh`, you must execute it using its absolute path: `{{AGENT_SKILLS_PATH}}/<skill-name>/scripts/run.sh`.
 
-| Skill | Intent | Trigger examples | Enabled |
-|---|---|---|---|
-| `pr-review` | code-review | "review this PR", "generate PR review prompt" | Yes |
-| `openapi-schema-creator` | api-design | "create an OpenAPI schema", "design an API" | Yes |
-| `skill-creator` | meta | "create a new skill", "add a skill" | Yes |
-| `music-tagger` | media | "update media tags", "batch tag songs" | Yes |
-| `obsidian` | notes | "work with obsidian", "notes in obsidian" | Yes |
-| `model-usage` | metrics | "model usage", "cost data" | No |
-| `skill-manifestor` | meta-skill | "manifest a new skill hierarchy", "use skill-manifestor" | No |
-| `dotfiles-management` | system | "manage dotfiles", "add a skill" | Yes |
-| `java-generic` | execution | "work on java project", "create java class" | Yes |
-| `python-generic` | execution | "work on python project", "create python script" | Yes |
-| `java-spring-framework-generic` | execution | "work on java spring framework project", "create java spring framework class" | Yes |
-| `java-vulnerability-manager` | execution | "fix vulnerabilities in java project", "run cve scan", "fix transitive dependency", "owasp dependency check" | Yes |
-| `ai-lsp-query` | execution | "find all references to", "who calls this function", "what type is this", "lsp query" | Yes |
+| Skill                           | Intent      | Trigger examples                                                                                                       | Enabled |
+| ------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------- | ------- |
+| `pr-review`                     | code-review | "review this PR", "generate PR review prompt"                                                                          | Yes     |
+| `openapi-schema-creator`        | api-design  | "create an OpenAPI schema", "design an API"                                                                            | Yes     |
+| `skill-creator`                 | meta        | "create a new skill", "add a skill"                                                                                    | Yes     |
+| `music-tagger`                  | media       | "update media tags", "batch tag songs"                                                                                 | Yes     |
+| `obsidian`                      | notes       | "work with obsidian", "notes in obsidian"                                                                              | Yes     |
+| `model-usage`                   | metrics     | "model usage", "cost data"                                                                                             | No      |
+| `skill-manifestor`              | meta-skill  | "manifest a new skill hierarchy", "use skill-manifestor"                                                               | No      |
+| `dotfiles-management`           | system      | "manage dotfiles", "add a skill"                                                                                       | Yes     |
+| `java-generic`                  | execution   | "work on java project", "create java class"                                                                            | Yes     |
+| `python-generic`                | execution   | "work on python project", "create python script"                                                                       | Yes     |
+| `java-spring-framework-generic` | execution   | "work on java spring framework project", "create java spring framework class"                                          | Yes     |
+| `java-vulnerability-manager`    | execution   | "fix vulnerabilities in java project", "run cve scan", "fix transitive dependency", "owasp dependency check"           | Yes     |
+| `ai-lsp-query`                  | execution   | "find all references to", "who calls this function", "what type is this", "lsp query"                                  | Yes     |
+| global-applications-guidelines  | execution   | "want to build a new app", "lets work on a project", "lets create an new app"                                          | Yes     |
+| brainstorming                   | planning    | "lets brainstorm on an idea", "lets plan an idea", "lets plan a project", "lets think about an idea", "I have an idea" | Yes     |
 
 More skills will appear here as they are added to the dotfiles.
 
@@ -107,61 +124,3 @@ Located at `$TOOLS_PATH`. Each tool has a `quick-start.sh` entry point.
 | `performance-manager/` | `pfm` | System performance monitor |
 | `helpful-tools-v2/` | `ht2` | Collection of helpful utilities |
 | `file-explorer/` | — | Remote file explorer (SFTP) |
-
----
-
-## Global Application Development Guidelines
-
-When creating a new application or modifying an existing project, adhere to the following universal rules regardless of platform, language, or framework:
-
-### 1. Planning & Architecture
-- **Architecture First:** Always create an `ARCHITECTURE.md` to brainstorm ideas and outline the high-level design. Clarify any questions with the user *before* beginning implementation.
-
-### 2. Modularity & Documentation
-- **Strict Modularity:** The project must be modular. Logic must be encapsulated within designated module directories.
-- **Standard Documentation (Per Module):** Every module must contain:
-  - `CONTEXT.md`: Explicitly defines the module's primary responsibility and scope.
-  - `TODO.md`: A live task list. Items must be ticked off only upon completion and verification.
-- **Scaffolding New Modules:** When creating a new module, you must initialize it with a `CONTEXT.md`, a `TODO.md`, and a dedicated `tests/` directory. Before making code changes, always read the module's `CONTEXT.md`, `TODO.md`, and the global `DEPENDENCY.md`.
-
-### 3. Global Coordination Files
-These files must exist at the root of the project:
-- `ARCHITECTURE.md`: Contains the project architecture, requirements, and high-level design.
-- `DEPENDENCY.md`: Clearly defines inter-module dependencies. **Rule:** This file must be symlinked into every child module.
-- `PROJECT_STATE.md`: Mandatory root file to track architectural decisions and progress. **Rule:** This file must be symlinked into every child module.
-  ```markdown
-  - **Phase**: [Current Phase]
-  - **Type**: [Fullstack/Frontend]
-  - **Stack**: [List of selected techs]
-  - **Modules**: [List of modules]
-  - **API Status**: [Draft/Finalized]
-  
-  ## Module Updates
-  [Each module adds its high-level status and major changes here, only relevant and single line containing the above information so that it can be easily read by other modules for their Reference]
-  ```
-
-### 4. Verification & Safety
-- **Test-Always Rule:** Run tests after every change. For every change, you MUST create or update test cases.
-- **Test-Preservation:** NEVER delete test cases without explicit notification and justification.
-- **CVE Audit:** Before completing a task, check dependencies for active vulnerabilities (e.g., `npm audit`, `pip-audit`, `safety check`) and report any active CVEs to the user immediately.
-
-### 5. Execution Strategy
-- **Atomic Changes:** Work on one small item from the `TODO.md` at a time.
-- **Minimal PRs:** Never pack too many unrelated changes into a single PR/Commit.
-
-### 6. The "Contract First" Rule
-- Interface and API definitions must precede any implementation.
-
-### 7. Web Domain Mandate (OpenAPI)
-For any web-based project, an **OpenAPI Schema** MUST be used as the source of truth to bind backend and frontend.
-- **Contract-First Workflow:**
-  1. Use the `openapi-schema-creator` skill to design the schema.
-  2. **Iterate** with the user through design reviews until the schema is explicitly **finalized**.
-  3. **LOCK:** Do NOT proceed to implementation or code generation until the schema is locked and saved.
-- The schema acts as the immutable "Contract" allowing transport and client layers to be developed and tested independently.
-
-### 8. Logging
-- Logging must be done properly. Every method call must have some sort of log to trace execution (use debug and info levels appropriately) for easier troubleshooting.
-
-### 9. Skill Loading
-- When working on specific languages or frameworks, first check if there is skill available for it in the above list, then check the `{{AGENT_SKILLS_PATH}}/` directory and utilize any relevant skills on demand to assist with specialized tasks.
