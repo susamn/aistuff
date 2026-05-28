@@ -1,4 +1,22 @@
 
+---
+name: global-applications-guidelines
+description: Core architectural and implementation guidelines for all application development.
+version: 1.0.0
+triggers:
+  - "start a new project"
+  - "architecting an application"
+  - "implementing a new feature"
+  - "want to build a new app"
+  - "lets work on a project"
+  - "lets create a new app"
+intent: system
+guardrails:
+  - Do not bypass the type system
+  - Do not suppress warnings
+  - Do not introduce redundant logic
+---
+
 # Global Application Development Guidelines
 
 When creating a new application or modifying an existing project, adhere to the following universal rules regardless of platform, language, or framework:
@@ -14,7 +32,7 @@ Before implementing:
 - If a simpler approach exists, say so. Push back when warranted.
 - If something is unclear, stop. Name what's confusing. Ask.
 
-## 1. Simplicity First
+## 2. Simplicity First
 
 **Minimum code that solves the problem. Nothing speculative.**
 
@@ -26,7 +44,7 @@ Before implementing:
 
 Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
-## 2. Surgical Changes
+## 3. Surgical Changes
 
 **Touch only what you must. Clean up only your own mess.**
 
@@ -44,7 +62,7 @@ When your changes create orphans:
 
 The test: Every changed line should trace directly to the user's request.
 
-## 3. Goal-Driven Execution
+## 4. Goal-Driven Execution
 
 **Define success criteria. Loop until verified.**
 
@@ -66,7 +84,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ---
 
-**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
 
 
 # Execution workflow
@@ -121,4 +139,4 @@ For any web-based project, an **OpenAPI Schema** MUST be used as the source of t
 - Logging must be done properly. Every method call must have some sort of log to trace execution (use debug and info levels appropriately) for easier troubleshooting.
 
 ## 9. Skill Loading
-- When working on specific languages or frameworks, first check if there is skill available for it in the above list, then check the `{{AGENT_SKILLS_PATH}}/` directory and utilize any relevant skills on demand to assist with specialized tasks.
+- When working on specific languages or frameworks, first check if there is a skill available for it in the available skills directory and utilize any relevant skills on demand to assist with specialized tasks.

@@ -1,3 +1,16 @@
+---
+name: brainstorming
+description: A structured two-phase brainstorming workflow (diverge then converge).
+version: 1.0.0
+triggers:
+  - "lets brainstorm on an idea"
+  - "lets plan an idea"
+  - "lets plan a project"
+  - "lets think about an idea"
+  - "I have an idea"
+intent: planning
+---
+
 # Brainstorm Skill
 
 A two-phase brainstorming workflow: **diverge** (quantity, no judgment) → **converge** (filter, rank, shortlist). Works across any domain — technical, product, creative, strategic.

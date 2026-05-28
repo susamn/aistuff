@@ -72,7 +72,7 @@ Skills are modular packages. Skill-specific scripts are stored within the skill 
 | `java-spring-framework-generic` | execution   | "work on java spring framework project", "create java spring framework class"                                          | Yes     |
 | `java-vulnerability-manager`    | execution   | "fix vulnerabilities in java project", "run cve scan", "fix transitive dependency", "owasp dependency check"           | Yes     |
 | `ai-lsp-query`                  | execution   | "find all references to", "who calls this function", "what type is this", "lsp query"                                  | Yes     |
-| global-applications-guidelines  | execution   | "want to build a new app", "lets work on a project", "lets create an new app"                                          | Yes     |
+| global-applications-guidelines  | execution   | "want to build a new app", "lets work on a project", "lets create a new app"                                          | Yes     |
 | brainstorming                   | planning    | "lets brainstorm on an idea", "lets plan an idea", "lets plan a project", "lets think about an idea", "I have an idea" | Yes     |
 
 More skills will appear here as they are added to the dotfiles.
