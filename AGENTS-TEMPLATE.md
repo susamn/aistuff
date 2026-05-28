@@ -78,6 +78,13 @@ Skills are modular packages. Skill-specific scripts are stored within the skill 
 
 More skills will appear here as they are added to the dotfiles.
 
+### Skill Selection & Loading
+When the user asks to "load skills", "select a skill", or "show skills":
+1. **Fetch**: Use `list_directory` on `{{AGENT_SKILLS_PATH}}` to identify all available skill folders.
+2. **Present**: Display a numbered, paginated list (max 10 items per page) of skills found in the `Available skills` table above. Include the skill name and its one-line description.
+3. **Activate**: When the user selects a skill by number or name, call the `activate_skill` tool.
+4. **Confirm**: Confirm to the user that the skill is loaded and ready.
+
 ### Skill Loading Scenarios
 To ensure the correct specialized tools and guardrails are applied, agents **MUST** automatically load and utilize the following skills under these specific scenarios:
 - **Dotfiles Management:** When working inside the `~/dotfiles/` directory, load the `dotfiles-management` skill.
