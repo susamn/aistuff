@@ -81,6 +81,7 @@ More skills will appear here as they are added to the dotfiles.
 ### Skill Loading Scenarios
 To ensure the correct specialized tools and guardrails are applied, agents **MUST** automatically load and utilize the following skills under these specific scenarios:
 - **Dotfiles Management:** When working inside the `~/dotfiles/` directory, load the `dotfiles-management` skill.
+- **Skill Management:** When tasked with auditing, checking compliance, or managing agent skills, load the `skill-manager` skill.
 - **Skill Creation:** When tasked with creating a new skill or expanding the skill framework, load the `skill-creator` skill.
 - **Openapi Schema Creation:** When tasked with creating an OpenAPI schema, load the `openapi-schema-creator` skill.
 - **Obsidian:** When tasked with working with obsidian, load the `obsidian` skill.
