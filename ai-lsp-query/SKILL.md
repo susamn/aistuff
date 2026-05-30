@@ -74,6 +74,8 @@ interface:
   output:
     result:    "structured findings — locations, symbol list, type info, diagnostics"
     status:    "string — outcome"
+created_at: 2026-05-30
+updated_at: 2026-05-30
 ---
 ## AI LSP Query — Semantic Code Intelligence
 

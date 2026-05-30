@@ -11,6 +11,8 @@ intent: meta-skill
 type: action
 parent: null
 mode_aware: true
+created_at: 2026-05-30
+updated_at: 2026-05-30
 ---
 
 # Skill Manifestor: Late-Binding Hierarchical Skill Framework

@@ -11,6 +11,8 @@ triggers:
   - "I want to build an API for"
   - "help me design an API contract"
 intent: api-design
+created_at: 2026-05-30
+updated_at: 2026-05-30
 ---
 
 # OpenAPI Schema Creator

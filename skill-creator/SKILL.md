@@ -6,6 +6,8 @@ triggers:
   - "create a new skill"
   - "add a skill"
 intent: meta
+created_at: 2026-05-30
+updated_at: 2026-05-30
 ---
 
 # Skill Creator
@@ -58,6 +60,8 @@ version: 1.0.0
 triggers:
   - "natural language phrase that activates this skill"
 intent: code-review | git | system | debug | media | ...
+created_at: YYYY-MM-DD
+updated_at: YYYY-MM-DD
 guardrails:
   - Do not X
 resources:
@@ -68,7 +72,7 @@ tools:
 ---
 ```
 
-The `description` is the primary triggering mechanism. Store skill-specific logic in `./scripts/` within the skill folder. Only use `$SCRIPTS_PATH` for truly global, shared utilities. This minimizes the "security blast radius" and makes skills portable.
+The `description` is the primary triggering mechanism. Always include `created_at` and `updated_at` timestamps in ISO 8601 format (YYYY-MM-DD). Store skill-specific logic in `./scripts/` within the skill folder. Only use `$SCRIPTS_PATH` for truly global, shared utilities. This minimizes the "security blast radius" and makes skills portable.
 
 ### Body (Markdown)
 

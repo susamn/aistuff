@@ -21,6 +21,8 @@ interface:
     task: "string — description of the dotfiles management task"
   output:
     status: "string — outcome of the operation"
+created_at: 2026-05-30
+updated_at: 2026-05-30
 ---
 ## Dotfiles management
 

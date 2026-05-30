@@ -57,24 +57,24 @@ Skills are modular packages. Skill-specific scripts are stored within the skill 
 
 **Rule for accessing skill scripts:** All skill resources are located at `{{AGENT_SKILLS_PATH}}/<skill-name>/`. When a skill references a script like `<SKILL_PATH>/scripts/run.sh` or `./scripts/run.sh` or `scripts/run.sh`, you must execute it using its absolute path: `{{AGENT_SKILLS_PATH}}/<skill-name>/scripts/run.sh`.
 
-| Skill                           | Intent      | Trigger examples                                                                                                       | Enabled |
-| ------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------- | ------- |
-| `pr-review`                     | code-review | "review this PR", "generate PR review prompt"                                                                          | Yes     |
-| `openapi-schema-creator`        | api-design  | "create an OpenAPI schema", "design an API"                                                                            | Yes     |
-| `skill-creator`                 | meta        | "create a new skill", "add a skill"                                                                                    | Yes     |
-| `music-tagger`                  | media       | "update media tags", "batch tag songs"                                                                                 | Yes     |
-| `obsidian`                      | notes       | "work with obsidian", "notes in obsidian"                                                                              | Yes     |
-| `model-usage`                   | metrics     | "model usage", "cost data"                                                                                             | No      |
-| `skill-manifestor`              | meta-skill  | "manifest a new skill hierarchy", "use skill-manifestor"                                                               | No      |
-| `dotfiles-management`           | system      | "manage dotfiles", "add a skill"                                                                                       | Yes     |
-| `java-generic`                  | execution   | "work on java project", "create java class"                                                                            | Yes     |
-| `python-generic`                | execution   | "work on python project", "create python script"                                                                       | Yes     |
-| `java-spring-framework-generic` | execution   | "work on java spring framework project", "create java spring framework class"                                          | Yes     |
-| `java-vulnerability-manager`    | execution   | "fix vulnerabilities in java project", "run cve scan", "fix transitive dependency", "owasp dependency check"           | Yes     |
-| `ai-lsp-query`                  | execution   | "find all references to", "who calls this function", "what type is this", "lsp query"                                  | Yes     |
-| `skill-manager`                | system      | "audit my skills", "check skill compliance", "manage skills"                                                           | Yes     |
-| global-applications-guidelines  | execution   | "want to build a new app", "lets work on a project", "lets create a new app"                                          | Yes     |
-| brainstorming                   | planning    | "lets brainstorm on an idea", "lets plan an idea", "lets plan a project", "lets think about an idea", "I have an idea" | Yes     |
+| Skill                           | Intent      | Trigger examples                                                                                                       | Created | Updated | Enabled |
+| ------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------- | ------- | ------- | ------- |
+| `pr-review`                     | code-review | "review this PR", "generate PR review prompt"                                                                          | 2026-05-30 | 2026-05-30 | Yes     |
+| `openapi-schema-creator`        | api-design  | "create an OpenAPI schema", "design an API"                                                                            | 2026-05-30 | 2026-05-30 | Yes     |
+| `skill-creator`                 | meta        | "create a new skill", "add a skill"                                                                                    | 2026-05-30 | 2026-05-30 | Yes     |
+| `music-tagger`                  | media       | "update media tags", "batch tag songs"                                                                                 | 2026-05-30 | 2026-05-30 | Yes     |
+| `obsidian`                      | notes       | "work with obsidian", "notes in obsidian"                                                                              | 2026-05-30 | 2026-05-30 | Yes     |
+| `model-usage`                   | metrics     | "model usage", "cost data"                                                                                             | 2026-05-30 | 2026-05-30 | No      |
+| `skill-manifestor`              | meta-skill  | "manifest a new skill hierarchy", "use skill-manifestor"                                                               | 2026-05-30 | 2026-05-30 | No      |
+| `dotfiles-management`           | system      | "manage dotfiles", "add a skill"                                                                                       | 2026-05-30 | 2026-05-30 | Yes     |
+| `java-generic`                  | execution   | "work on java project", "create java class"                                                                            | 2026-05-30 | 2026-05-30 | Yes     |
+| `python-generic`                | execution   | "work on python project", "create python script"                                                                       | 2026-05-30 | 2026-05-30 | Yes     |
+| `java-spring-framework-generic` | execution   | "work on java spring framework project", "create java spring framework class"                                          | 2026-05-30 | 2026-05-30 | Yes     |
+| `java-vulnerability-manager`    | execution   | "fix vulnerabilities in java project", "run cve scan", "fix transitive dependency", "owasp dependency check"           | 2026-05-30 | 2026-05-30 | Yes     |
+| `ai-lsp-query`                  | execution   | "find all references to", "who calls this function", "what type is this", "lsp query"                                  | 2026-05-30 | 2026-05-30 | Yes     |
+| `skill-manager`                | system      | "audit my skills", "check skill compliance", "manage skills"                                                           | 2026-05-30 | 2026-05-30 | Yes     |
+| global-applications-guidelines  | execution   | "want to build a new app", "lets work on a project", "lets create a new app"                                          | 2026-05-30 | 2026-05-30 | Yes     |
+| brainstorming                   | planning    | "lets brainstorm on an idea", "lets plan an idea", "lets plan a project", "lets think about an idea", "I have an idea" | 2026-05-30 | 2026-05-30 | Yes     |
 
 More skills will appear here as they are added to the dotfiles.
 

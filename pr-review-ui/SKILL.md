@@ -22,6 +22,8 @@ interface:
     prompts_dir: "string? — Path to /tmp/pr-review/<randomid>/prompts/"
   output:
     html_file: "string — Path to generated /tmp/pr-review/<randomid>/review_p<N>.html"
+created_at: 2026-05-30
+updated_at: 2026-05-30
 ---
 
 ## What this skill does

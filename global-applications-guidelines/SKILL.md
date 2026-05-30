@@ -15,6 +15,8 @@ guardrails:
   - Do not bypass the type system
   - Do not suppress warnings
   - Do not introduce redundant logic
+created_at: 2026-05-30
+updated_at: 2026-05-30
 ---
 
 # Global Application Development Guidelines

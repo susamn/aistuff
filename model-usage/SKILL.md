@@ -11,6 +11,8 @@ resources:
 tools:
   - bash
   - python3
+created_at: 2026-05-30
+updated_at: 2026-05-30
 ---
 
 # Model usage

@@ -11,6 +11,8 @@ intent: system
 guardrails:
   - Do not modify skills without user confirmation for each change.
   - Ensure YAML frontmatter is valid and contains all required fields.
+created_at: 2026-05-30
+updated_at: 2026-05-30
 ---
 
 # Skill Manager
@@ -31,6 +33,8 @@ For each selected skill, read its `SKILL.md` and check for:
   - `version`: SemVer format.
   - `triggers`: A list of natural language phrases.
   - `intent`: One of (code-review, git, system, debug, media, planning, execution).
+  - `created_at`: ISO 8601 format (YYYY-MM-DD).
+  - `updated_at`: ISO 8601 format (YYYY-MM-DD).
 - **Optional Fields**: `guardrails`, `resources`, `tools`.
 
 ### 2. Path Placeholders

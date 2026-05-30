@@ -33,6 +33,8 @@ interface:
     task: "string — description of the Spring Boot task"
   output:
     status: "string — outcome of the operation"
+created_at: 2026-05-30
+updated_at: 2026-05-30
 ---
 ## Spring Framework Development Guidelines
 

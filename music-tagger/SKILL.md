@@ -16,6 +16,8 @@ interface:
   input:
     directory: "string — Path to the directory containing media files"
     mapping: "json — A mapping of filenames to tag dictionaries or artist strings"
+created_at: 2026-05-30
+updated_at: 2026-05-30
 ---
 
 # Media Tagger Skill

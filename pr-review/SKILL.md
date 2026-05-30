@@ -26,6 +26,8 @@ interface:
     story_file: "string? — optional path to a ticket or user story file for context"
   output:
     prompts_dir: "string — path to generated directory containing prompt chunks: /tmp/pr-review/<randomid>/prompts/"
+created_at: 2026-05-30
+updated_at: 2026-05-30
 ---
 
 ## What this skill does

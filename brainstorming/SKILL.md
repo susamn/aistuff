@@ -9,6 +9,8 @@ triggers:
   - lets think about an idea
   - I have an idea
 intent: planning
+created_at: 2026-05-30
+updated_at: 2026-05-30
 ---
 
 # Architectural Brainstorm Engine — The Defensive Deconstructionist
