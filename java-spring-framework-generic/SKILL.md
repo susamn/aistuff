@@ -26,9 +26,7 @@ guardrails:
   - "Always use MockMvc for testing REST controllers."
   - "Check for SDKMAN environment variables (JAVA_HOME, JAVA21_HOME, SDKMAN_CANDIDATES_DIR) and use them when present."
   - "Always run builds via the project wrapper (./mvnw or ./gradlew), never with a globally installed tool."
-intent: execution
 config_dir: ~/.config/skill-config/java-spring-framework-generic
-guardrails:
 ...
   input:
     task: "string — description of the Spring Boot task"

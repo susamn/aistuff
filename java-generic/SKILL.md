@@ -14,9 +14,7 @@ guardrails:
   - "Do not swallow checked exceptions; either handle them with context-rich logging or wrap and rethrow as domain-specific unchecked exceptions."
   - "Prefer immutability: use `final` fields, `List.of()` / `Map.of()` / `Set.of()` for collections, and Java records for pure data carriers."
   - "Never use raw types; always parameterize generics (e.g., `List<String>`, not `List`)."
-intent: execution
 config_dir: ~/.config/skill-config/java-generic
-guardrails:
 ...
   input:
     task: "string — description of the Java task"
