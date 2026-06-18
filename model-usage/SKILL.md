@@ -1,21 +1,34 @@
 ---
 name: model-usage
 description: Use CodexBar CLI local cost usage to summarize per-model usage for Codex or Claude, including the current (most recent) model or a full model breakdown. Trigger when asked for model-level usage/cost data from codexbar, or when you need a scriptable per-model summary from codexbar cost JSON.
-version: 1.0.0
+version: 1.1.0 holiday-break
 triggers:
   - "model usage"
   - "cost data"
 intent: metrics
+config_dir: ~/.config/skill-config/model-usage
 resources:
   - ./scripts/model_usage.py
 tools:
   - bash
   - python3
 created_at: 2026-05-30
-updated_at: 2026-05-30
+updated_at: 2026-06-18
 ---
 
 # Model usage
+
+## Skill Configuration
+
+This skill uses `~/.config/skill-config/model-usage/skill.properties` to store provider defaults and export formats.
+
+Before execution, check if `~/.config/skill-config/model-usage/` and `skill.properties` exist. If not, create them and notify the user: "Creating configuration directory and default properties file for model-usage to store your preferred providers and report formats." Any new property added or saved back to this file MUST be approved by the user beforehand. When loading the file, explicitly report the loaded entries to the user.
+
+### Common Properties
+- `default_provider`: `codex` or `claude`.
+- `default_format`: `text` or `json`.
+
+Before execution, check `~/.config/skill-config/model-usage/skill.properties` for preferred defaults.
 
 ## Overview
 Get per-model usage cost from CodexBar's local cost logs. Supports "current model" (most recent daily entry) or "all models" summaries for Codex or Claude.

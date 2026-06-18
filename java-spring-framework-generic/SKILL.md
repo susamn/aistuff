@@ -4,7 +4,7 @@ description: >
   Comprehensive guidelines, patterns, and best practices for Spring Boot 3.x
   application development — covering REST APIs, data access, security,
   observability, async patterns, testing, and production readiness.
-version: 1.0.0
+version: 1.1.0
 triggers:
   - "work on spring boot project"
   - "create spring boot application"
@@ -26,19 +26,34 @@ guardrails:
   - "Always use MockMvc for testing REST controllers."
   - "Check for SDKMAN environment variables (JAVA_HOME, JAVA21_HOME, SDKMAN_CANDIDATES_DIR) and use them when present."
   - "Always run builds via the project wrapper (./mvnw or ./gradlew), never with a globally installed tool."
-tools:
-  - bash
-interface:
+intent: execution
+config_dir: ~/.config/skill-config/java-spring-framework-generic
+guardrails:
+...
   input:
     task: "string — description of the Spring Boot task"
   output:
     status: "string — outcome of the operation"
 created_at: 2026-05-30
-updated_at: 2026-05-30
+updated_at: 2026-06-18
 ---
 ## Spring Framework Development Guidelines
 
+## Skill Configuration
+
+This skill uses `~/.config/skill-config/java-spring-framework-generic/skill.properties` for project-specific defaults.
+
+Before implementation, check if `~/.config/skill-config/java-spring-framework-generic/` and `skill.properties` exist. If not, create them and notify the user: "Creating configuration directory and default properties file for java-spring-framework-generic to store your preferred Spring Boot and Java versions." Any new property added or saved back to this file MUST be approved by the user beforehand. When loading the file, explicitly report the loaded entries to the user.
+
+### Common Properties
+- `target_java_version`: (e.g., `21`)
+- `target_spring_boot_version`: (e.g., `3.2.0`)
+- `use_virtual_threads`: `true`/`false`
+
+Before implementation, check `~/.config/skill-config/java-spring-framework-generic/skill.properties` for the target versions and feature flags.
+
 ---
+
 
 ### 0. Version Baseline
 

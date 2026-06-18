@@ -6,7 +6,7 @@ description: >
   listings, and diagnostics — using the same AST-backed data an IDE uses.
   Composable: any other skill can call lsp-query.sh to get semantic context
   before generating or validating code.
-version: 1.0.0
+version: 1.1.0
 triggers:
   - "find all references to"
   - "who calls this function"
@@ -17,6 +17,7 @@ triggers:
   - "lsp query"
   - "semantic code search"
 intent: execution
+config_dir: ~/.config/skill-config/ai-lsp-query
 helpers:
   - path: "<SKILL_PATH>/scripts/lsp-query.sh"
     purpose: >
@@ -75,9 +76,21 @@ interface:
     result:    "structured findings — locations, symbol list, type info, diagnostics"
     status:    "string — outcome"
 created_at: 2026-05-30
-updated_at: 2026-05-30
+updated_at: 2026-06-18
 ---
 ## AI LSP Query — Semantic Code Intelligence
+
+## Skill Configuration
+
+This skill uses `~/.config/skill-config/ai-lsp-query/skill.properties` for LSP server preferences and timeouts.
+
+Before performing a query, check if `~/.config/skill-config/ai-lsp-query/` and `skill.properties` exist. If not, create them and notify the user: "Creating configuration directory and default properties file for ai-lsp-query to store your preferred language servers and timeout settings." Any new property added or saved back to this file MUST be approved by the user beforehand. When loading the file, explicitly report the loaded entries to the user.
+
+### Common Properties
+- `preferred_python_server`: `pylsp` or `pyright`.
+- `lsp_timeout`: (e.g., `5.0`) in seconds.
+
+Before performing a query, check `~/.config/skill-config/ai-lsp-query/skill.properties` to select the correct server and settings.
 
 ---
 

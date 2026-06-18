@@ -1,12 +1,13 @@
 ---
 name: music-tagger
 description: Batch update media file metadata (tags) using ffmpeg. Use when needing to update artist, album, or other ID3 tags for multiple files.
-version: 1.0.0
+version: 1.1.0
 triggers:
   - "update media tags"
   - "batch tag songs"
   - "update artist metadata"
 intent: media
+config_dir: ~/.config/skill-config/music-tagger
 resources:
   - ./scripts/batch-tagger.py
 tools:
@@ -17,12 +18,24 @@ interface:
     directory: "string — Path to the directory containing media files"
     mapping: "json — A mapping of filenames to tag dictionaries or artist strings"
 created_at: 2026-05-30
-updated_at: 2026-05-30
+updated_at: 2026-06-18
 ---
 
 # Media Tagger Skill
 
 This skill allows for efficient batch updating of media file metadata (especially .m4a and .mp3) using ffmpeg.
+
+## Skill Configuration
+
+This skill uses `~/.config/skill-config/music-tagger/skill.properties` for default mapping preferences.
+
+Before starting the workflow, check if `~/.config/skill-config/music-tagger/` and `skill.properties` exist. If not, create them and notify the user: "Creating configuration directory and default properties file for music-tagger to store your default artist and format preferences." Any new property added or saved back to this file MUST be approved by the user beforehand. When loading the file, explicitly report the loaded entries to the user.
+
+### Common Properties
+- `default_artist`: Default artist if not specified.
+- `output_format`: Preferred output format (e.g., `m4a`, `mp3`).
+
+Before starting the workflow, check `~/.config/skill-config/music-tagger/skill.properties` for defaults.
 
 ## Workflow
 

@@ -1,15 +1,17 @@
 ---
 name: pr-review
 description: Generate a structured, LLM-ready PR review prompt from a GitHub pull request — fetches metadata, diff, and file list, injects optional story/ticket context, and writes a review-ready markdown file.
-version: 1.0.0
+version: 1.1.0
 triggers:
   - "review this PR"
   - "review pull request"
   - "generate PR review prompt"
-  - "pr review for <url>"
-  - "review <github-url>"
+  - pr review for <url>
+  - review <github-url>
 intent: code-review
+config_dir: ~/.config/skill-config/pr-review
 guardrails:
+
   - Do not post or submit the review anywhere — output to a local file only
   - Do not proceed without a valid GitHub PR URL confirmed by the user
   - Do not include secrets, tokens, or credentials in the generated output
@@ -27,7 +29,7 @@ interface:
   output:
     prompts_dir: "string — path to generated directory containing prompt chunks: /tmp/pr-review/<randomid>/prompts/"
 created_at: 2026-05-30
-updated_at: 2026-05-30
+updated_at: 2026-06-18
 ---
 
 ## What this skill does
@@ -35,6 +37,19 @@ updated_at: 2026-05-30
 Runs the local `./scripts/pr-review-gen.sh` to extract the PR diff, metadata, and a structured review prompt. 
 To handle LLM context limits, the diffs are split into multiple chunks (~100KB each max). The prompt chunks are stored in `/tmp/pr-review/<randomid>/prompts/` (e.g., `p1.txt`, `p2.txt`). 
 These are ready to be pasted into any LLM or iterated automatically by the `pr-review-ui` skill.
+
+
+## Skill Configuration
+
+This skill uses `~/.config/skill-config/pr-review/skill.properties` for state and defaults.
+
+Before running, check if `~/.config/skill-config/pr-review/` and `skill.properties` exist. If not, create them and notify the user: "Creating configuration directory and default properties file for pr-review to store persistent preferences like your git provider." Any new property added or saved back to this file MUST be approved by the user beforehand. When loading the file, explicitly report the loaded entries to the user.
+
+### Common Properties
+- `git_provider`: (e.g., `github`, `gitlab`) Defaults to `github`.
+- `default_output_dir`: Custom path for review prompts.
+
+Before running, check the configuration to determine the `git_provider`. If the config is missing or the provider is unknown, use `gh` for GitHub as the default.
 
 ## Steps
 

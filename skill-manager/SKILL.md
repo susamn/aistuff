@@ -1,21 +1,34 @@
 ---
 name: skill-manager
 description: Audit and standardize agent skills against established repository patterns.
-version: 1.0.0
+version: 1.1.0
 triggers:
   - "audit my skills"
   - "check skill compliance"
   - "manage skills"
   - "standardize skill"
 intent: system
+config_dir: ~/.config/skill-config/skill-manager
 guardrails:
   - Do not modify skills without user confirmation for each change.
   - Ensure YAML frontmatter is valid and contains all required fields.
 created_at: 2026-05-30
-updated_at: 2026-05-30
+updated_at: 2026-06-18
 ---
 
 # Skill Manager
+
+## Skill Configuration
+
+This skill uses `~/.config/skill-config/skill-manager/skill.properties` to track audit history and preferred standards.
+
+Before starting an audit, check if `~/.config/skill-config/skill-manager/` and `skill.properties` exist. If not, create them and notify the user: "Creating configuration directory and default properties file for skill-manager to store your audit history and enforcement standards." Any new property added or saved back to this file MUST be approved by the user beforehand. When loading the file, explicitly report the loaded entries to the user.
+
+### Common Properties
+- `last_audit_date`: Timestamp of the last full audit.
+- `enforce_strict_config`: `true`/`false`.
+
+Before starting an audit, check `~/.config/skill-config/skill-manager/skill.properties` for enforcement settings.
 
 Workflow for auditing and standardizing agent skills in the `~/dotfiles/skills/` directory.
 
@@ -33,6 +46,7 @@ For each selected skill, read its `SKILL.md` and check for:
   - `version`: SemVer format.
   - `triggers`: A list of natural language phrases.
   - `intent`: One of (code-review, git, system, debug, media, planning, execution).
+  - `config_dir`: Path to configuration directory (e.g., `~/.config/skill-config/<name>`).
   - `created_at`: ISO 8601 format (YYYY-MM-DD).
   - `updated_at`: ISO 8601 format (YYYY-MM-DD).
 - **Optional Fields**: `guardrails`, `resources`, `tools`.
@@ -41,7 +55,15 @@ For each selected skill, read its `SKILL.md` and check for:
 - Use `<SKILL_PATH>` for any absolute path references internal to the skill.
 - Use `{{AGENT_SKILLS_PATH}}` for global agent-relative paths if necessary.
 
-### 3. Conciseness & Structure
+### 3. Skill Configuration Loading
+- The body MUST include instructions to read `~/.config/skill-config/<skill-name>/skill.properties` upon loading.
+- The skill MUST explicitly mention to print/log the loaded properties to the user upon reading them.
+- The skill MUST contain instructions to create the config folder and `skill.properties` file if they do not exist, printing a message to the user explaining why they are being created.
+- During an audit, check if the config directory and `skill.properties` file actually exist on the current machine. If they do not exist, explicitly notify the user about their absence.
+- Check if scripts use these properties and if the skill updates the config file with useful state.
+- Ensure the skill body explicitly states that any action to add or save a new property back to `skill.properties` requires explicit user consultation and approval beforehand.
+
+### 4. Conciseness & Structure
 - No "README" or "CHANGELOG" style filler.
 - Body must be clear, step-by-step instructions.
 - Ensure no duplicate rules or contradictory guidance.
