@@ -1,15 +1,14 @@
-
 ---
 name: global-applications-guidelines
 description: Core architectural and implementation guidelines for all application development.
 version: 1.1.0
 triggers:
-  - "start a new project"
-  - "architecting an application"
-  - "implementing a new feature"
-  - "want to build a new app"
-  - "lets work on a project"
-  - "lets create a new app"
+  - '"start a new project", '
+  - '"architecting an application"'
+  - '"implementing a new feature"'
+  - '"want to build a new app"'
+  - '"lets work on a project"'
+  - '"lets create a new app"'
 intent: system
 config_dir: ~/.config/skill-config/global-applications-guidelines
 guardrails:
