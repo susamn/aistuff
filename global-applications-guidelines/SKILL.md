@@ -1,7 +1,7 @@
 ---
 name: global-applications-guidelines
 description: Core architectural and implementation guidelines for all application development.
-version: " 1.0.0"
+version: 1.1.0
 triggers:
   - '"start a new project", '
   - '"architecting an application"'
@@ -10,15 +10,28 @@ triggers:
   - '"lets work on a project"'
   - '"lets create a new app"'
 intent: system
+config_dir: ~/.config/skill-config/global-applications-guidelines
 guardrails:
   - Do not bypass the type system
   - Do not suppress warnings
   - Do not introduce redundant logic
 created_at: 2026-05-30
-updated_at: 2026-05-30
+updated_at: 2026-06-18
 ---
 
 # Global Application Development Guidelines
+
+## Skill Configuration
+
+This skill uses `~/.config/skill-config/global-applications-guidelines/skill.properties` for global architectural mandates.
+
+Before planning or architecting, check if `~/.config/skill-config/global-applications-guidelines/` and `skill.properties` exist. If not, create them and notify the user: "Creating configuration directory and default properties file for global-applications-guidelines to store project-wide architectural constraints." Any new property added or saved back to this file MUST be approved by the user beforehand. When loading the file, explicitly report the loaded entries to the user.
+
+### Common Properties
+- `contract_first`: `true`/`false` (enforce OpenAPI first).
+- `test_always`: `true`/`false` (enforce tests for every change).
+
+Before planning or architecting, check `~/.config/skill-config/global-applications-guidelines/skill.properties` to ensure compliance with global standards.
 
 When creating a new application or modifying an existing project, adhere to the following universal rules regardless of platform, language, or framework:
 

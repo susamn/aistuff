@@ -1,7 +1,7 @@
 ---
 name: brainstorming
 description: Guide rigorous, principal-aware, contract-first architectural brainstorming sessions. Designed for iterative, systems-deep thinking that pivots at the abstraction level, reasons in trust boundaries, and treats data contracts as first-class design artifacts — not implementation details.
-version: 2.0.0
+version: 2.1.0
 triggers:
   - lets brainstorm on an idea
   - lets plan an idea
@@ -9,11 +9,25 @@ triggers:
   - lets think about an idea
   - I have an idea
 intent: planning
+config_dir: ~/.config/skill-config/brainstorming
 created_at: 2026-05-30
-updated_at: 2026-05-30
+updated_at: 2026-06-18
 ---
 
 # Architectural Brainstorm Engine — The Defensive Deconstructionist
+
+## Skill Configuration
+
+This skill uses `~/.config/skill-config/brainstorming/skill.properties` for brainstorming preferences and session persistence.
+
+Before starting Phase -1, check if `~/.config/skill-config/brainstorming/` and `skill.properties` exist. If not, create them and notify the user: "Creating configuration directory and default properties file for brainstorming to store your planning preferences and session history." Any new property added or saved back to this file MUST be approved by the user beforehand. When loading the file, explicitly report the loaded entries to the user.
+
+
+### Common Properties
+- `anti_sycophancy`: `true`/`false`.
+- `default_abstraction_level`: `DATA MODEL`, `PROTOCOL`, etc.
+
+Before starting Phase -1, check `~/.config/skill-config/brainstorming/skill.properties` to align with the user's planning style.
 
 ---
 

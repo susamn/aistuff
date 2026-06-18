@@ -1,12 +1,13 @@
 ---
 name: python-generic
 description: Universal guidelines, patterns, and best practices for Python development
-version: 1.1.0
+version: 1.2.0
 triggers:
   - "work on python project"
   - "create python script"
   - "python backend"
 intent: execution
+config_dir: ~/.config/skill-config/python-generic
 guardrails:
   - "Never install packages globally; I use pyenv, try to activate the virtual environment called Playground for generic work and install packages there. If you see any existing virtual environment created by me in the current directory, use it."
   - "Prefer using `uv` tool for package management and virtual environment management."
@@ -22,9 +23,22 @@ interface:
   output:
     status: "string — outcome of the operation"
 created_at: 2026-05-30
-updated_at: 2026-05-30
+updated_at: 2026-06-18
 ---
 ## Python Development Guidelines
+
+## Skill Configuration
+
+This skill uses `~/.config/skill-config/python-generic/skill.properties` for environment-specific defaults and tool preferences.
+
+Before performing any task, check if `~/.config/skill-config/python-generic/` and `skill.properties` exist. If not, create them and notify the user: "Creating configuration directory and default properties file for python-generic to store your virtual environment and formatting preferences." Any new property added or saved back to this file MUST be approved by the user beforehand. When loading the file, explicitly report the loaded entries to the user.
+
+### Common Properties
+- `default_venv_name`: (e.g., `Playground`, `.venv`)
+- `preferred_formatter`: (e.g., `ruff`, `black`)
+- `use_uv`: `true`/`false`
+
+Before performing any task, check `~/.config/skill-config/python-generic/skill.properties` to ensure alignment with local preferences.
 
 ### 1. Style & Formatting
 - Strictly follow **PEP 8** style guidelines for all code.

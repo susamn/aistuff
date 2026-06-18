@@ -1,7 +1,7 @@
 ---
 name: java-generic
 description: Universal guidelines, patterns, and best practices for Java development
-version: 1.1.0
+version: 1.2.0
 triggers:
   - "work on java project"
   - "create java class"
@@ -14,19 +14,32 @@ guardrails:
   - "Do not swallow checked exceptions; either handle them with context-rich logging or wrap and rethrow as domain-specific unchecked exceptions."
   - "Prefer immutability: use `final` fields, `List.of()` / `Map.of()` / `Set.of()` for collections, and Java records for pure data carriers."
   - "Never use raw types; always parameterize generics (e.g., `List<String>`, not `List`)."
-tools:
-  - bash
-interface:
+config_dir: ~/.config/skill-config/java-generic
+...
   input:
     task: "string — description of the Java task"
   output:
     status: "string — outcome of the operation"
 created_at: 2026-05-30
-updated_at: 2026-05-30
+updated_at: 2026-06-18
 ---
 ## Java Development Guidelines
 
+## Skill Configuration
+
+This skill uses `~/.config/skill-config/java-generic/skill.properties` for SDK and tool preferences.
+
+Before execution, check if `~/.config/skill-config/java-generic/` and `skill.properties` exist. If not, create them and notify the user: "Creating configuration directory and default properties file for java-generic to store your preferred JDK and build tool settings." Any new property added or saved back to this file MUST be approved by the user beforehand. When loading the file, explicitly report the loaded entries to the user.
+
+### Common Properties
+- `default_java_version`: (e.g., `21`)
+- `preferred_build_tool`: `maven` or `gradle`.
+- `use_sdkman`: `true`/`false`.
+
+Before execution, check `~/.config/skill-config/java-generic/skill.properties` to ensure the correct environment is prepared.
+
 ### 0. Java Version Target
+
 - **Target Java 21 LTS** unless the runtime environment constrains you to an earlier version.
 - Prefer modern language constructs over legacy alternatives:
   - **Records** for immutable data carriers instead of POJOs with boilerplate getters/setters.

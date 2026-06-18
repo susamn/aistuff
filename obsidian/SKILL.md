@@ -1,22 +1,35 @@
 ---
 name: obsidian
 description: Work with Obsidian vaults (plain Markdown notes) and automate via obsidian-cli.
-version: 1.0.0
+version: 1.1.0
 triggers:
   - "work with obsidian"
   - "notes in obsidian"
 intent: notes
+config_dir: ~/.config/skill-config/obsidian
 resources:
   - ./local/bin/obsidian-cli
 tools:
   - bash
 created_at: 2026-05-30
-updated_at: 2026-05-30
+updated_at: 2026-06-18
 ---
 
 # Obsidian
 
 Obsidian vault = a normal folder on disk.
+
+## Skill Configuration
+
+This skill uses `~/.config/skill-config/obsidian/skill.properties` to store the default vault path and other preferences.
+
+Before executing commands, check if `~/.config/skill-config/obsidian/` and `skill.properties` exist. If not, create them and notify the user: "Creating configuration directory and default properties file for obsidian to store your vault paths and indexing preferences." Any new property added or saved back to this file MUST be approved by the user beforehand. When loading the file, explicitly report the loaded entries to the user.
+
+### Common Properties
+- `default_vault_name`: Name of the default vault.
+- `default_vault_path`: Absolute path to the default vault.
+
+Before executing commands, check `~/.config/skill-config/obsidian/skill.properties` to resolve the default vault.
 
 Vault structure (typical)
 - Notes: `*.md` (plain text Markdown; edit with any editor)

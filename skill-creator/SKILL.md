@@ -1,16 +1,29 @@
 ---
 name: skill-creator
 description: Guide for creating effective skills that extend different agents' capabilities. Use when creating new skills or updating existing skills with specialized knowledge, workflows, or tool integrations.
-version: 1.0.0
+version: 1.1.0
 triggers:
   - "create a new skill"
   - "add a skill"
 intent: meta
+config_dir: ~/.config/skill-config/skill-creator
 created_at: 2026-05-30
-updated_at: 2026-05-30
+updated_at: 2026-06-18
 ---
 
 # Skill Creator
+
+## Skill Configuration
+
+This skill uses `~/.config/skill-config/skill-creator/skill.properties` for templates and standard fields.
+
+Before creating a skill, check if `~/.config/skill-config/skill-creator/` and `skill.properties` exist. If not, create them and notify the user: "Creating configuration directory and default properties file for skill-creator to store your skill templates and default author information." Any new property added or saved back to this file MUST be approved by the user beforehand. When loading the file, explicitly report the loaded entries to the user.
+
+### Common Properties
+- `default_author`: Name to use in `created_at` or `updated_at` (optional).
+- `auto_stow_after_creation`: `true`/`false`.
+
+Before creating a skill, check `~/.config/skill-config/skill-creator/skill.properties` for standard templates.
 
 Guide for creating effective skills that extend different agents' capabilities.
 
@@ -60,6 +73,7 @@ version: 1.0.0
 triggers:
   - "natural language phrase that activates this skill"
 intent: code-review | git | system | debug | media | ...
+config_dir: ~/.config/skill-config/skill-name
 created_at: YYYY-MM-DD
 updated_at: YYYY-MM-DD
 guardrails:
@@ -72,11 +86,26 @@ tools:
 ---
 ```
 
-The `description` is the primary triggering mechanism. Always include `created_at` and `updated_at` timestamps in ISO 8601 format (YYYY-MM-DD). Store skill-specific logic in `./scripts/` within the skill folder. Only use `$SCRIPTS_PATH` for truly global, shared utilities. This minimizes the "security blast radius" and makes skills portable.
+The `description` is the primary triggering mechanism. Always include `created_at` and `updated_at` timestamps in ISO 8601 format (YYYY-MM-DD). The `config_dir` field specifies where the skill's persistent configuration and state are stored.
+
+Store skill-specific logic in `./scripts/` within the skill folder. Only use `$SCRIPTS_PATH` for truly global, shared utilities. This minimizes the "security blast radius" and makes skills portable.
 
 ### Body (Markdown)
 
 Instructions and guidance. Use `<SKILL_PATH>` as a placeholder if you need to reference the absolute path to the skill's directory during execution.
+
+## Skill Configuration
+
+Skills MUST support persistent configuration via a `skill.properties` file located in their `config_dir`. The skill scripts may use these properties in it. The skills should decide when to add a useful property back to the properties file, but they MUST explicitly consult with the user and obtain approval BEFORE saving or adding any new properties to the `skill.properties` file. When requesting approval, give a clear indication why we need to add this property and which script will use it. While saving an approved property, give proper comments per key=value mapping, so that the agents can understand what is this property.
+
+### Configuration Standard
+- **Location**: `~/.config/skill-config/<skill-name>/skill.properties`
+- **Format**: `key=value` (one per line)
+- **Loading**: The skill MUST read this file upon activation to load defaults, environment settings (e.g., `git_provider=github`), or previously taken actions to avoid redundancy. Upon reading, the skill MUST explicitly print/notify the user which properties have been loaded from the file.
+- **Initialization**: If the config directory or `skill.properties` file does not exist, the skill MUST automatically create them, informing the user with a clear message explaining why the folder and file are being created and what they are used for.
+
+### Example Usage in Body
+"Check if `~/.config/skill-config/<skill-name>/` and `skill.properties` exist. If not, create them and output a clear message to the user: 'Creating configuration directory and default properties file for <skill-name> to store persistent preferences and state.' Then read the file to determine the preferred `git_provider`..."
 
 ## Bundled Resources
 
