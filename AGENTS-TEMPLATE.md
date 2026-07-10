@@ -113,7 +113,7 @@ Located at `$SCRIPTS_PATH`. Invoke with `bash "$SCRIPTS_PATH/<script>"`.
 | `arch-system-manager.sh` | `asm` | Arch Linux system manager (update, boot safety, timeline) |
 | `ssl-debugger.sh` | — | Debug SSL/TLS certificates |
 | `jwtd.sh` | `jwtd` | Decode and inspect JWT tokens |
-| `generate-ssh-keys.sh` | `gsk` | Generate SSH key pairs |
+| `generate-secure-resources.sh` | `gsec` | Generates secure resources which are encrypted with GPG |
 | `ytd.sh` | `ytd` | Download YouTube videos/audio via yt-dlp |
 | `video-merger.sh` | — | Merge video files |
 | `als.sh` | `als` | Search/browse shell aliases interactively |
