@@ -114,6 +114,7 @@ Located at `$SCRIPTS_PATH`. Invoke with `bash "$SCRIPTS_PATH/<script>"`.
 | `ssl-debugger.sh` | — | Debug SSL/TLS certificates |
 | `jwtd.sh` | `jwtd` | Decode and inspect JWT tokens |
 | `generate-secure-resources.sh` | `gsec` | Generates secure resources which are encrypted with GPG |
+| `rclone-config-manager.sh` | `rclc` | Manage rclone backend configurations by splitting, encrypting, and assembling profiles |
 | `ytd.sh` | `ytd` | Download YouTube videos/audio via yt-dlp |
 | `video-merger.sh` | — | Merge video files |
 | `als.sh` | `als` | Search/browse shell aliases interactively |
