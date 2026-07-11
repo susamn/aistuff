@@ -12,6 +12,7 @@ config_dir: ~/.config/skill-config/dotfiles-management
 guardrails:
   - Do not stow the skills/ directory.
   - Do not use absolute paths when environment variables are available.
+  - Document any new shell aliases in workspace/.alias_descriptions.
 resources:
   - ./do-stow.sh
   - ./do-unstow.sh
