@@ -61,7 +61,7 @@ plus the file path is the handle; opening all twenty files defeats the purpose.
 | `frontmatter` | missing/unterminated block, or a missing required field |
 | `kind` | invalid value; `guidance` skill carrying scripts; `pipeline` skill with none |
 | `contract` | `pipeline` skill with no summary projection — the agent would have to read the full artifact |
-| `budget` | SKILL.md over 150 lines; an **error** when there is no `references/` to split into |
+| `budget` | SKILL.md over 200 lines; an **error** when there is no `references/` to split into |
 | `resources` | a declared path that does not resolve, or a bare `./` relative path |
 | `registration` | not listed in `AGENTS-TEMPLATE.md` |
 | `enabled` | table `Enabled` cell disagrees with the `.disabled` directory suffix |

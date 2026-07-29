@@ -14,10 +14,23 @@ TEMPLATE = os.path.join(SKILLS_DIR, "AGENTS-TEMPLATE.md")
 
 REQUIRED = ["name", "description", "version", "kind", "triggers", "intent",
             "created_at", "updated_at"]
+# House convention: `tools:` names real executables, because skills deploy to five
+# agents. Agent primitives (write_to_file, view_file, read_file) differ per agent.
+AGENT_PRIMITIVES = {"write_to_file", "view_file", "read_file", "edit_file",
+                    "run_command", "list_directory", "search_files",
+                    "activate_skill", "web_search"}
+# Env vars whose literal expansion must not be hardcoded in skill prose.
+ENV_LITERALS = {
+    "~/workspace/scripts": "$SCRIPTS_PATH",
+    "~/workspace/tools": "$TOOLS_PATH",
+    "~/workspace/services": "$SERVICES_PATH",
+    "~/workspace/install": "$INSTALL_PATH",
+    "~/workspace/sdk": "$SDK_PATH",
+}
 KINDS = {"guidance", "pipeline", "hybrid"}
 SEMVER = re.compile(r"^\d+\.\d+\.\d+$")
 ISODATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
-BUDGET = 150
+BUDGET = 200
 
 findings = []   # (severity, skill, check, message)
 
@@ -208,6 +221,21 @@ def audit(skill_dir, name, disabled, table):
     if cfg and str(cfg).rstrip("/") != expected:
         add("ERR", name, "config",
             f"config_dir '{cfg}' != conventional '{expected}'")
+
+    # ── house conventions ────────────────────────────────────────────────────
+    for t in fm.get("tools", []) or []:
+        tool = strip_comment(t)
+        if tool in AGENT_PRIMITIVES:
+            add("ERR", name, "conventions",
+                f"tools: '{tool}' is an agent primitive, not a binary — "
+                "skills deploy to five agents")
+    body = prose_only(text)
+    if re.search(r"/home/[a-z][a-z0-9_-]*/", body):
+        add("ERR", name, "conventions",
+            "hardcoded absolute home path in prose — use an env var or <SKILL_PATH>")
+    for literal, var in ENV_LITERALS.items():
+        if literal in body:
+            add("WARN", name, "conventions", f"'{literal}' in prose — use {var}")
 
     # ── registration & enabled-state ─────────────────────────────────────────
     if name not in table:

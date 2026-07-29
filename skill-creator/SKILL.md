@@ -25,8 +25,11 @@ updated_at: 2026-07-29
 
 # Skill Creator
 
-Optional config: `~/.config/skill-config/skill-creator/skill.properties`
-(`default_author`, `auto_stow_after_creation`) — protocol in `references/frontmatter.md`.
+**Read `references/house-conventions.md` first.** It carries the path, tooling,
+deployment, and working-style conventions of this setup — a skill that ignores them
+is valid and still feels foreign. Optional config:
+`~/.config/skill-config/skill-creator/skill.properties` (`default_author`,
+`auto_stow_after_creation`), protocol in `references/frontmatter.md`.
 
 ## Step 0 — Classify before writing
 
@@ -98,10 +101,14 @@ Two counterweights, both real failure modes:
 
 ## Budgets
 
-- **SKILL.md ≤ 150 lines.** It is a router: what to do, when, and what to read next.
-- Everything longer belongs in `references/<topic>.md`, loaded on demand.
-- An oversized SKILL.md with no `references/` directory is precisely the failure
-  this budget exists to prevent.
+- **Keep SKILL.md lean — a router: what to do, when, and what to read next.**
+  Around 100–150 lines is typical; **200 is the hard ceiling.**
+- Do not contort prose to hit a line count. If a skill genuinely needs 180 lines of
+  always-relevant content, that is fine. Compressing sentences to win three lines
+  costs readability and buys nothing.
+- Past the ceiling, move whole topics to `references/<topic>.md` rather than
+  trimming words. An oversized SKILL.md with no `references/` is the actual failure
+  this guards against.
 
 ## Process
 
@@ -138,13 +145,13 @@ two sources drift. Detail: `dotfiles-management`.
 - Explanations a competent agent already has
 - Config ceremony in a skill with nothing to configure — `config_dir` is
   **optional**, declared only when the skill has real persistent state
-
-Skills are for agents, not humans. Include only what is needed to do the job.
+- Anything a competent agent already knows. Skills are for agents, not humans.
 
 ## Read next
 
 | file | when |
 |---|---|
+| `references/house-conventions.md` | **always — before writing or editing any skill** |
 | `references/frontmatter.md` | writing frontmatter; the config protocol |
 | `references/script-contract.md` | any `pipeline` skill — required |
 | `references/guidance-skills.md` | any `guidance` skill; splitting an oversized skill |

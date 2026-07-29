@@ -113,5 +113,5 @@ Users can request TUIs via 3 simple methods:
 * **Method 3: Directory Auto-Discovery**
   Point the agent to a folder of scripts and run:
   ```bash
-  python3 <SKILL_PATH>/scripts/scaffold_tui.py --dir ~/workspace/scripts --out menu.json
+  python3 <SKILL_PATH>/scripts/scaffold_tui.py --dir $SCRIPTS_PATH --out menu.json
   ```

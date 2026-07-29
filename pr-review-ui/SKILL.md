@@ -16,8 +16,6 @@ guardrails:
   - Do not output raw markdown diffs when invoked; output the final file URI and confirmation.
 tools:
   - bash
-  - write_to_file
-  - view_file
 created_at: 2026-05-30
 updated_at: 2026-07-29
 ---
@@ -32,12 +30,12 @@ When the user triggers this skill:
 
 1. **Locate Prompts**: If the user didn't specify a directory, look for recently modified `/tmp/pr-review/*/prompts/` directories. If there are none, invite them to run `pr-review` first.
 2. **Determine Chunk State**: Identify which snippet needs to be reviewed. If the user just started, pick `p1.txt`. If they said "next hunk/chunk", inspect the directory to find the sequentially next file (e.g. `p2.txt`, `p3.txt`) that hasn't been reviewed yet (has no matching `review_p*.html`).
-3. **Read and Review**: Read the selected `.txt` file using the `view_file` tool. Act as a senior engineer as instructed in the prompt's `Review Instructions`. Formulate inline review comments inside your internal model context.
+3. **Read and Review**: Read the selected `.txt` file with whatever file-read capability the host agent provides. Act as a senior engineer as instructed in the prompt's `Review Instructions`. Formulate inline review comments inside your internal model context.
 4. **Render HTML**: Use the *Pure HTML/CSS Diff Template* below to construct the UI layout. Generate standard `<tr>` elements representing the side-by-side diff.
    - **Old Code (Left)**: Show removed lines (`-`) or unchanged lines. Empty for added lines (`+`).
    - **New Code (Right)**: Show added lines (`+`) or unchanged lines. Empty for removed lines (`-`).
    - **Inline comments (LLM feedback)**: If a specific line or block warrants a comment from your code review logic, inject a spanning row `<tr><td colspan="4" class="inline-comment">YOUR COMMENT HTML</td></tr>` immediately beneath the relevant diff row.
-5. **Save and Present**: Write the generated HTML to the parent `/tmp/pr-review/<randomid>/review_p<N>.html` using `write_to_file`. Present the absolute file URI starting with `file:///tmp/...` to the user as a clickable link. Prompt the user: `"Review chunk <N> generated. Say 'next hunk' to process the next set of files."`
+5. **Save and Present**: Write the generated HTML to the parent `/tmp/pr-review/<randomid>/review_p<N>.html` with the host agent's file-write capability. Present the absolute file URI starting with `file:///tmp/...` to the user as a clickable link. Prompt the user: `"Review chunk <N> generated. Say 'next hunk' to process the next set of files."`
 
 ---
 

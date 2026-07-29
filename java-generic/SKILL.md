@@ -40,6 +40,14 @@ updated_at: 2026-07-29
 - Check for and use these if set: `SDKMAN_DIR`, `SDKMAN_CANDIDATES_DIR`,
   `SDKMAN_PLATFORM`, `JAVA_HOME`, and the version-specific `JAVA11_HOME`,
   `JAVA17_HOME`, `JAVA21_HOME`.
+- **Dependency caches are shared and must not be bypassed.** When `M2_HOME` is set
+  it is the Maven local repository — pass it through rather than letting Maven
+  default to `~/.m2`. Same for `GOPATH`, `CARGO_HOME`, `NPM_CONFIG_CACHE`, and
+  `PIP_CACHE_DIR` in polyglot projects.
+
+  ```bash
+  ./mvnw -Dmaven.repo.local="$M2_HOME" <goals>    # when M2_HOME is set
+  ```
 
 ## 2. Build tools & execution
 - Always use the project wrapper (`./mvnw`, `./gradlew`) to compile, test, package.

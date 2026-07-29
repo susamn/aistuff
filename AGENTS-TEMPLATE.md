@@ -67,7 +67,7 @@ A skill is deployed only when its source directory is **not** suffixed `.disable
 - A pipeline skill ships a **summary projection** — one compact line per finding, each with evidence, ending in the path to the full artifact. Never make the agent read a whole artifact to summarize it.
 - Scripts: stdout is data only, stderr is diagnostics, exit `0`/`1`/`2`. Failures emit a structured error with a log path, never a stack trace — and the **agent** decides whether to retry, skip, fall back, or ask; the script only reports.
 - One entrypoint with modes (`analyze | summary | verbose`) beats many single-purpose scripts. But don't build infrastructure for a one-off, and don't overengineer — structure earns its place when a second caller appears, not in anticipation.
-- SKILL.md is a router, **≤150 lines**; everything else goes in `references/` and is loaded on demand.
+- SKILL.md is a router — keep it lean, hard ceiling **200 lines**; detail goes in `references/`, loaded on demand.
 - `config_dir` is optional — declare it only when the skill has real persistent state.
 
 | Skill                           | Intent      | Trigger examples                                                                                                       | Created | Updated | Enabled |

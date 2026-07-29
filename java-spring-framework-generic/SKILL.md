@@ -26,6 +26,7 @@ guardrails:
   - "When starting a new app, check for an existing OpenAPI schema and build to it. Starting from scratch, write the schema before the implementation."
   - "Always use MockMvc for testing REST controllers."
   - "Use SDKMAN environment variables (JAVA_HOME, JAVA21_HOME, SDKMAN_CANDIDATES_DIR) when present."
+  - "When M2_HOME is set it is the shared Maven local repository — pass it through (-Dmaven.repo.local=\"$M2_HOME\") rather than letting the build default to ~/.m2."
   - "Always build via the project wrapper (./mvnw or ./gradlew), never a globally installed tool."
 tools:
   - bash
