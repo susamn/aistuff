@@ -1,179 +1,150 @@
 ---
 name: skill-creator
 description: Guide for creating effective skills that extend different agents' capabilities. Use when creating new skills or updating existing skills with specialized knowledge, workflows, or tool integrations.
-version: 1.2.0
+version: 2.1.0
+kind: hybrid
 triggers:
   - "create a new skill"
   - "add a skill"
 intent: meta
 config_dir: ~/.config/skill-config/skill-creator
+guardrails:
+  - Classify the skill before writing it. Guidance skills get zero scripts; pipeline skills keep judgment out of code.
+  - A script must never dump raw data into agent context — emit a projection plus a handle to the full artifact.
+  - SKILL.md is a router. Detail belongs in references/, loaded on demand.
+resources:
+  - <SKILL_PATH>/scripts/scaffold.sh
+  - <SKILL_PATH>/references/frontmatter.md
+  - <SKILL_PATH>/references/script-contract.md
+  - <SKILL_PATH>/references/guidance-skills.md
+tools:
+  - bash
 created_at: 2026-05-30
 updated_at: 2026-07-29
 ---
 
 # Skill Creator
 
-## Skill Configuration
+Optional config: `~/.config/skill-config/skill-creator/skill.properties`
+(`default_author`, `auto_stow_after_creation`) — protocol in `references/frontmatter.md`.
 
-This skill uses `~/.config/skill-config/skill-creator/skill.properties` for templates and standard fields.
+## Step 0 — Classify before writing
 
-Before creating a skill, check if `~/.config/skill-config/skill-creator/` and `skill.properties` exist. If not, create them and notify the user: "Creating configuration directory and default properties file for skill-creator to store your skill templates and default author information." Any new property added or saved back to this file MUST be approved by the user beforehand. When loading the file, explicitly report the loaded entries to the user.
+Every skill is one of three kinds, declared as `kind:` in frontmatter. The kind
+determines the entire shape of the skill. Choosing wrong is the most expensive
+mistake available here, because it is discovered only after the skill is written.
 
-### Common Properties
-- `default_author`: Name to use in `created_at` or `updated_at` (optional).
-- `auto_stow_after_creation`: `true`/`false`.
+| kind | test | shape |
+|---|---|---|
+| `guidance` | Encodes judgment. Nothing to compute at runtime. | Prose only. **Zero scripts.** Router SKILL.md + `references/`. |
+| `pipeline` | Operates on real data — files, repos, APIs, metrics. | Thin SKILL.md + `scripts/` + a declared output contract. |
+| `hybrid` | Both, in cleanly separable sections. | Declare which sections are which. Suspect it is really two skills. |
 
-Before creating a skill, check `~/.config/skill-config/skill-creator/skill.properties` for standard templates.
+If you cannot name the concrete runtime input a script would read, it is
+`guidance`. Adding scripts to a guidance skill produces rigid output that is
+wrong in every situation the author did not foresee.
 
-Guide for creating effective skills that extend different agents' capabilities.
+## The boundary rule
 
-## About Skills
+Do not ask "can this be scripted." Ask whether the operation is **total** or a
+**judgment**.
 
-Skills are modular, self-contained packages that extend different agents' capabilities by providing specialized knowledge, workflows, and tools. Think of them as "onboarding guides" for specific domains.
+- **Total** — exactly one right answer for every input: counting, parsing,
+  filtering, sorting, diffing, aggregating, schema validation, formatting.
+  Always a script. An agent doing this is slow, expensive, and wrong at the edges.
+- **Judgment** — depends on context: relevance, ranking, causation, what to
+  recommend, what to tell the user, and **what to do when a script fails**.
+  Always the agent. Freezing judgment into code yields output that is confidently
+  wrong wherever the author's guess ran out.
 
-### What Skills Provide
+Corollary: **tunable values live in data, the logic applying them lives in code.**
+Thresholds, weights, and limits belong in a JSON or properties file beside the
+script, never inline. Retuning must be an edit to data, not to logic.
 
-1. **Specialized workflows** - Multi-step procedures for specific domains
-2. **Tool integrations** - Instructions for working with specific file formats or APIs
-3. **Domain expertise** - Company-specific knowledge, schemas, business logic
-4. **Bundled resources** - Scripts, references, and assets for complex tasks
+## The two boundaries
 
-## Core Principles
+A pipeline skill has two places data crosses a line. Both must be designed; only
+the first is obvious.
 
-### Concise is Key
+1. **script → script** — intermediate artifacts on disk under a versioned schema.
+   These stay out of context entirely.
+2. **script → agent** — the one that gets forgotten. The agent must never read a
+   full artifact in order to say three sentences about it. Every pipeline skill
+   ships a **summary projection** (one compact line per finding) *and* the
+   **path to the full artifact** so the agent can drill down when a number looks
+   wrong.
 
-The context window is a public good. Only add context the agent doesn't already have.
+Compression is not free — it is inference relocated to authoring time, where you
+know less than the agent will at runtime. So compress to preserve
+decision-relevant variance, and always leave the escape hatch. A summary with no
+handle back to the data is a dead end.
 
-**Default assumption: Agents is already very smart.** Challenge each piece of information: "Does the agent really need this explanation?"
+Full contract: `references/script-contract.md`. Read it before writing any
+pipeline skill.
 
-Prefer concise examples over verbose explanations.
+## Script granularity
 
-### Anatomy of a Skill
+One script with modes beats many single-purpose scripts. Every script is a
+contract to keep in sync, so N scripts means N places for schema drift — prefer
+`run.sh analyze | summary | verbose` over three separate files.
 
-```
-skill-name/
-├── SKILL.md (required)
-│   ├── YAML frontmatter (name, description)
-│   └── Markdown instructions
-└── Bundled Resources (optional)
-    ├── scripts/      - Skill-specific scripts (preferred)
-    ├── references/   - Documentation
-    └── assets/       - Templates, images
-```
+Two counterweights, both real failure modes:
 
-## SKILL.md Components
+- **Don't build infrastructure for a one-off.** A task run once needs no artifact
+  schema, no threshold file, no projection. Write the ten-line script.
+- **Don't overengineer.** Structure earns its place when a second caller or a
+  second run demands it, never in anticipation. Unused ceremony is exactly the
+  clutter this design exists to remove.
 
-### Frontmatter (YAML)
+## Budgets
 
-```yaml
----
-name: skill-name
-description: What the skill does. Use when [activation trigger].
-version: 1.0.0
-triggers:
-  - "natural language phrase that activates this skill"
-intent: code-review | git | system | debug | media | ...
-config_dir: ~/.config/skill-config/skill-name
-created_at: YYYY-MM-DD
-updated_at: YYYY-MM-DD
-guardrails:
-  - Do not X
-resources:
-  - ./scripts/script-name.sh  # Relative to skill directory
-  - $TOOLS_PATH/tool-name     # For global tools
-tools:
-  - bash
----
-```
+- **SKILL.md ≤ 150 lines.** It is a router: what to do, when, and what to read next.
+- Everything longer belongs in `references/<topic>.md`, loaded on demand.
+- An oversized SKILL.md with no `references/` directory is precisely the failure
+  this budget exists to prevent.
 
-The `description` is the primary triggering mechanism. Always include `created_at` and `updated_at` timestamps in ISO 8601 format (YYYY-MM-DD). The `config_dir` field specifies where the skill's persistent configuration and state are stored.
+## Process
 
-Store skill-specific logic in `./scripts/` within the skill folder. Only use `$SCRIPTS_PATH` for truly global, shared utilities. This minimizes the "security blast radius" and makes skills portable.
-
-### Body (Markdown)
-
-Instructions and guidance. Use `<SKILL_PATH>` as a placeholder if you need to reference the absolute path to the skill's directory during execution.
-
-## Skill Configuration
-
-Skills MUST support persistent configuration via a `skill.properties` file located in their `config_dir`. The skill scripts may use these properties in it. The skills should decide when to add a useful property back to the properties file, but they MUST explicitly consult with the user and obtain approval BEFORE saving or adding any new properties to the `skill.properties` file. When requesting approval, give a clear indication why we need to add this property and which script will use it. While saving an approved property, give proper comments per key=value mapping, so that the agents can understand what is this property.
-
-### Configuration Standard
-- **Location**: `~/.config/skill-config/<skill-name>/skill.properties`
-- **Format**: `key=value` (one per line)
-- **Loading**: The skill MUST read this file upon activation to load defaults, environment settings (e.g., `git_provider=github`), or previously taken actions to avoid redundancy. Upon reading, the skill MUST explicitly print/notify the user which properties have been loaded from the file.
-- **Initialization**: If the config directory or `skill.properties` file does not exist, the skill MUST automatically create them, informing the user with a clear message explaining why the folder and file are being created and what they are used for.
-
-### Example Usage in Body
-"Check if `~/.config/skill-config/<skill-name>/` and `skill.properties` exist. If not, create them and output a clear message to the user: 'Creating configuration directory and default properties file for <skill-name> to store persistent preferences and state.' Then read the file to determine the preferred `git_provider`..."
-
-## Bundled Resources
-
-### Scripts (`./scripts/`)
-
-Executable code for tasks requiring deterministic reliability. Store these inside the skill directory for better security and portability.
-
-### References (`references/`)
-
-Documentation loaded as needed into context.
-
-### Assets (`assets/`)
-
-Files used in output (templates, images, fonts).
-
-## Progressive Disclosure
-
-Skills use three-level loading:
-
-1. **Metadata** - Always in context (~100 words)
-2. **SKILL.md body** - When skill triggers (<5k words)
-3. **Bundled resources** - As needed
-
-Keep SKILL.md under 500 lines. Split content when approaching this limit.
-
-## Skill Creation Process
-
-1. **Understand** - Gather concrete usage examples
-2. **Plan** - Identify reusable scripts, references, assets
-3. **Initialize** - `mkdir -p ~/dotfiles/skills/<name>`
-4. **Edit** - Write `~/dotfiles/skills/<name>/SKILL.md`. Reference skill-local
-   scripts as `<SKILL_PATH>/scripts/<script>`. Use `$TOOLS_PATH` / `$SCRIPTS_PATH`
-   only for genuinely global utilities that live outside the skill.
-5. **Register** - Add the skill to the `## Available skills` table in
+1. **Classify** — pick the `kind`. State it and the reasoning to the user.
+2. **Understand** — gather concrete usage examples. For `pipeline`, name the exact
+   runtime input and the decision its output supports.
+3. **Scaffold** — `<SKILL_PATH>/scripts/scaffold.sh <name> --kind <kind>`
+4. **Write** — fill SKILL.md against the budget. Reference skill-local scripts as
+   `<SKILL_PATH>/scripts/<script>`; use `$TOOLS_PATH` / `$SCRIPTS_PATH` only for
+   genuinely global utilities living outside the skill.
+5. **Register** — add a row to the `## Available skills` table in
    `~/dotfiles/skills/AGENTS-TEMPLATE.md`.
-6. **Deploy** - Run `bash ~/dotfiles/do-stow.sh` — regenerates every agent's
-   instruction file from the template and symlinks the skill into every agent's
-   skills directory.
-7. **Commit** - `skills/` is a **git submodule**, so this is two commits: the
-   skill inside the submodule, then the pointer bump in the parent repo.
+6. **Deploy** — `bash ~/dotfiles/do-stow.sh`
+7. **Audit** — `~/dotfiles/skills/skill-manager/scripts/audit.sh <name>`.
+   Must pass before committing.
+8. **Commit** — `skills/` is a **git submodule**, so this is two commits:
    ```bash
    git -C ~/dotfiles/skills add <name>/ AGENTS-TEMPLATE.md
    git -C ~/dotfiles/skills commit -m "skills: add <name>"
    git -C ~/dotfiles add skills
    git -C ~/dotfiles commit -m "skills: bump submodule for <name>"
    ```
-8. **Iterate** - Improve based on real usage
+9. **Iterate** — improve from real usage.
 
 ## Enabling and disabling a skill
 
-`do-stow.sh` decides deployment from the directory name alone: a skill directory
-suffixed `.disabled` has its symlink removed from every agent and is not
-deployed. The `Enabled` column in the skills table is documentation of that
-state, not a mechanism — no script reads it.
+Rename the directory to `<name>.disabled` and re-run `do-stow.sh` — the suffix is
+the only mechanism. Update the table's `Enabled` cell in the same change, or the
+two sources drift. Detail: `dotfiles-management`.
 
-```bash
-mv ~/dotfiles/skills/<name> ~/dotfiles/skills/<name>.disabled   # disable
-bash ~/dotfiles/do-stow.sh
-```
+## What NOT to include
 
-Always update the table's `Enabled` cell in the same change, or the two sources
-drift apart.
+- README.md, CHANGELOG.md, installation guides, user-facing documentation
+- Explanations a competent agent already has
+- Config ceremony in a skill with nothing to configure — `config_dir` is
+  **optional**, declared only when the skill has real persistent state
 
-## What NOT to Include
+Skills are for agents, not humans. Include only what is needed to do the job.
 
-- README.md
-- INSTALLATION_GUIDE.md
-- CHANGELOG.md
-- User-facing documentation
+## Read next
 
-Skills are for AI agents, not humans. Only include what the agent needs to do the job.
+| file | when |
+|---|---|
+| `references/frontmatter.md` | writing frontmatter; the config protocol |
+| `references/script-contract.md` | any `pipeline` skill — required |
+| `references/guidance-skills.md` | any `guidance` skill; splitting an oversized skill |

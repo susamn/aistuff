@@ -1,75 +1,81 @@
 ---
 name: skill-manager
-description: Audit and standardize agent skills against established repository patterns.
-version: 1.1.0
+description: Audit and standardize agent skills against the authoring contract — frontmatter validity, progressive-disclosure budgets, script/prose boundary, resource resolution, and registration/enabled-state consistency. Use when auditing skills, checking skill compliance, or standardizing a skill.
+version: 2.0.0
+kind: pipeline
 triggers:
   - "audit my skills"
   - "check skill compliance"
   - "manage skills"
   - "standardize skill"
 intent: system
-config_dir: ~/.config/skill-config/skill-manager
 guardrails:
-  - Do not modify skills without user confirmation for each change.
-  - Ensure YAML frontmatter is valid and contains all required fields.
+  - Never modify a skill without showing the finding and getting confirmation for that specific change.
+  - Report findings from the audit output only — do not re-derive them by reading every SKILL.md.
+  - A failing check is evidence, not a verdict; some findings are deliberate choices.
+resources:
+  - <SKILL_PATH>/scripts/audit.sh
+  - <SKILL_PATH>/scripts/audit.py
+tools:
+  - bash
+  - python3
 created_at: 2026-05-30
-updated_at: 2026-06-18
+updated_at: 2026-07-29
 ---
 
 # Skill Manager
 
-## Skill Configuration
+Auditing is a total operation — every check has one right answer for a given
+skill — so it lives in code. Run the audit, then spend judgment on what to do
+about the findings, not on finding them.
 
-This skill uses `~/.config/skill-config/skill-manager/skill.properties` to track audit history and preferred standards.
+## Workflow
 
-Before starting an audit, check if `~/.config/skill-config/skill-manager/` and `skill.properties` exist. If not, create them and notify the user: "Creating configuration directory and default properties file for skill-manager to store your audit history and enforcement standards." Any new property added or saved back to this file MUST be approved by the user beforehand. When loading the file, explicitly report the loaded entries to the user.
+1. **Audit.** Whole set, or named skills:
 
-### Common Properties
-- `last_audit_date`: Timestamp of the last full audit.
-- `enforce_strict_config`: `true`/`false`.
+   ```bash
+   ~/dotfiles/skills/skill-manager/scripts/audit.sh
+   ~/dotfiles/skills/skill-manager/scripts/audit.sh java-generic obsidian
+   ```
 
-Before starting an audit, check `~/.config/skill-config/skill-manager/skill.properties` for enforcement settings.
+   Output is one line per finding — `SEV  skill  check  message` — and nothing
+   else. Counts go to stderr. Exit `0` clean, `1` errors present, `2` unable to run.
 
-Workflow for auditing and standardizing agent skills in the `~/dotfiles/skills/` directory.
+2. **Triage.** Errors are contract violations. Warnings are judgment calls that
+   may be deliberate — say so rather than mechanically "fixing" them.
 
-## Step 1: List & Select
-List all directories in `~/dotfiles/skills/` (excluding hidden ones and the `.agents` file). Present them to the user and ask which one(s) they would like to audit.
+3. **Propose.** Group findings by root cause, not by file. Show the exact edit
+   for each and get confirmation per change. Several skills failing the same
+   check usually means one shared fix.
 
-## Step 2: Audit Checklist
-For each selected skill, read its `SKILL.md` and check for:
+4. **Deploy.** After edits, `bash ~/dotfiles/do-stow.sh`, then re-run the audit to
+   confirm clean.
 
-### 1. YAML Frontmatter
-- **Presence**: Must start and end with `---`.
-- **Fields**:
-  - `name`: Matches directory name.
-  - `description`: Concise summary.
-  - `version`: SemVer format.
-  - `triggers`: A list of natural language phrases.
-  - `intent`: One of (code-review, git, system, debug, media, planning, execution).
-  - `config_dir`: Path to configuration directory (e.g., `~/.config/skill-config/<name>`).
-  - `created_at`: ISO 8601 format (YYYY-MM-DD).
-  - `updated_at`: ISO 8601 format (YYYY-MM-DD).
-- **Optional Fields**: `guardrails`, `resources`, `tools`.
+Read a skill's SKILL.md only when a finding needs interpretation. The audit line
+plus the file path is the handle; opening all twenty files defeats the purpose.
 
-### 2. Path Placeholders
-- Use `<SKILL_PATH>` for any absolute path references internal to the skill.
-- Use `{{AGENT_SKILLS_PATH}}` for global agent-relative paths if necessary.
+## What the checks mean
 
-### 3. Skill Configuration Loading
-- The body MUST include instructions to read `~/.config/skill-config/<skill-name>/skill.properties` upon loading.
-- The skill MUST explicitly mention to print/log the loaded properties to the user upon reading them.
-- The skill MUST contain instructions to create the config folder and `skill.properties` file if they do not exist, printing a message to the user explaining why they are being created.
-- During an audit, check if the config directory and `skill.properties` file actually exist on the current machine. If they do not exist, explicitly notify the user about their absence.
-- Check if scripts use these properties and if the skill updates the config file with useful state.
-- Ensure the skill body explicitly states that any action to add or save a new property back to `skill.properties` requires explicit user consultation and approval beforehand.
+| check | error condition |
+|---|---|
+| `frontmatter` | missing/unterminated block, or a missing required field |
+| `kind` | invalid value; `guidance` skill carrying scripts; `pipeline` skill with none |
+| `contract` | `pipeline` skill with no summary projection — the agent would have to read the full artifact |
+| `budget` | SKILL.md over 150 lines; an **error** when there is no `references/` to split into |
+| `resources` | a declared path that does not resolve, or a bare `./` relative path |
+| `registration` | not listed in `AGENTS-TEMPLATE.md` |
+| `enabled` | table `Enabled` cell disagrees with the `.disabled` directory suffix |
+| `config` | describes `skill.properties` while declaring no `config_dir` |
+| `scripts` | a shell script that is not executable |
 
-### 4. Conciseness & Structure
-- No "README" or "CHANGELOG" style filler.
-- Body must be clear, step-by-step instructions.
-- Ensure no duplicate rules or contradictory guidance.
+The full authoring contract these enforce lives in `skill-creator`:
+`references/frontmatter.md`, `references/script-contract.md`, and
+`references/guidance-skills.md`. Consult those when a fix is not obvious.
 
-## Step 3: Propose & Fix
-Present a summary of findings (Passed/Failed) for each check. If any checks fail, propose the exact `replace` or `write_file` calls needed to fix them and wait for user approval.
+## Adding a check
 
-## Step 4: Sync
-After changes, remind the user to run `./do-stow.sh` (or offer to do it) to deploy the updated skills to the agents.
+Checks are total operations and belong in `scripts/audit.py` — never as prose
+instructions here. Add a call inside `audit()`, use `add("ERR"|"WARN", name,
+check, msg)`, and keep the message to one line naming the specific offending
+value. A check that cannot be decided mechanically is not a check; it is
+guidance, and belongs in `skill-creator`.
