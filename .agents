@@ -1,19 +1,14 @@
 # Agent configuration
-# Columns: <agent_name>  <skills_path>  [instruction_symlink]
+# Columns: <agent_name>  <skills_path>  <instruction_symlink>  <mcp_config_path>
 #
 #   skills_path        — where skill symlinks are deployed
 #   instruction_symlink — ABSOLUTE path (~ expanded) where the agent reads its
-#                         global instruction file. do-stow.sh creates a symlink
-#                         there pointing back to AGENTS.md in this repo.
-#                         Use - if the agent reads AGENTS.md by walking up from
-#                         CWD (e.g. codex reads ~/AGENTS.md automatically).
-#
-# Cursor has no global instruction file — it reads .cursor/rules/ per-project only.
-# When working inside this repo, agents find AGENTS.md in the repo root directly.
+#                         global instruction file.
+#   mcp_config_path    — ABSOLUTE path (~ expanded) where MCP servers JSON config is synced.
 
-claude   ~/.claude/skills   ~/.claude/CLAUDE.md
-codex    ~/.codex/skills    ~/AGENTS.md
-gemini   ~/.gemini/skills   ~/.gemini/GEMINI.md
-cursor   ~/.cursor/rules    -
-copilot  ~/.copilot/skills  -
-# agents   ~/.agents/skills   -
+claude   ~/.claude/skills   ~/.claude/CLAUDE.md   ~/.config/Claude/claude_desktop_config.json
+codex    ~/.codex/skills    ~/AGENTS.md           ~/.codex/mcp.json
+gemini   ~/.gemini/skills   ~/.gemini/GEMINI.md   ~/.gemini/mcp.json
+cursor   ~/.cursor/rules    -                     ~/.cursor/mcp.json
+copilot  ~/.copilot/skills  -                     -
+
