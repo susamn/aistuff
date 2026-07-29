@@ -6,7 +6,8 @@ description: >
   listings, and diagnostics — using the same AST-backed data an IDE uses.
   Composable: any other skill can call lsp-query.sh to get semantic context
   before generating or validating code.
-version: 1.1.0
+version: 2.0.0
+kind: pipeline
 triggers:
   - "find all references to"
   - "who calls this function"
@@ -17,96 +18,34 @@ triggers:
   - "lsp query"
   - "semantic code search"
 intent: execution
-config_dir: ~/.config/skill-config/ai-lsp-query
-helpers:
-  - path: "<SKILL_PATH>/scripts/lsp-query.sh"
-    purpose: >
-      Main dispatcher. Detects language from file extension or --lang flag,
-      validates prerequisites, delegates to the language-specific wrapper.
-      This is the only script other skills need to call.
-  - path: "<SKILL_PATH>/scripts/lsp-python.sh"
-    purpose: >
-      Python LSP bootstrap. Activates project venv (or Playground venv),
-      selects pylsp or pyright, passes init options to disable noisy plugins.
-  - path: "<SKILL_PATH>/scripts/lsp-go.sh"
-    purpose: >
-      Go LSP bootstrap. Locates go.mod root, configures gopls with staticcheck
-      and inlay hints, respects GOPATH/GOROOT from environment.
-  - path: "<SKILL_PATH>/scripts/lsp-java.sh"
-    purpose: >
-      Java LSP stub (jdtls). Not yet wired — outputs a clear message with
-      interim alternatives and the implementation roadmap.
-  - path: "<SKILL_PATH>/scripts/lib/lsp-rpc.py"
-    purpose: >
-      Core JSON-RPC engine. Owns the LSP protocol: initialize handshake,
-      textDocument/didOpen, all query types, response parsing, output formatting.
-      Called by language wrappers — not invoked directly.
 guardrails:
-  - "Always chmod +x all scripts under <SKILL_PATH>/scripts/ before first use."
-  - "Use --output json when the result will be consumed by another script or skill — not for human display."
-  - "LSP servers index the workspace on startup — expect 1–5s latency for Python/Go, up to 90s for Java (jdtls first run)."
+  - "Use --output json when the result feeds another script or skill — not for human display."
+  - "LSP servers index on startup — expect 1–5s latency for Python/Go, up to 90s for Java (jdtls first run)."
   - "lsp-query.sh uses the git root as the workspace by default. Override with --workspace if the project root differs."
-  - "For positional queries (hover, references, etc.) prefer --symbol over --line/--col — symbol search is more robust to file edits."
-  - "Never run lsp-query.sh on generated files (build/, target/, dist/, __pycache__/) — results will be noisy and unreliable."
+  - "For positional queries prefer --symbol over --line/--col — symbol search survives file edits."
+  - "Never query generated files (build/, target/, dist/, __pycache__/) — results are noisy and unreliable."
   - "Java support is a stub. Use the interim alternatives printed by lsp-java.sh until jdtls is wired."
-supported_languages:
-  python:
-    server: pylsp (preferred) | pyright-langserver
-    install: "pip install python-lsp-server"
-    status: implemented
-  go:
-    server: gopls
-    install: "go install golang.org/x/tools/gopls@latest"
-    status: implemented
-  java:
-    server: jdtls (Eclipse JDT Language Server)
-    install: "brew install jdtls  OR  manual download from github.com/eclipse-jdtls/eclipse.jdt.ls"
-    status: stub — tracked for next iteration
+resources:
+  - <SKILL_PATH>/scripts/lsp-query.sh
+  - <SKILL_PATH>/scripts/lsp-python.sh
+  - <SKILL_PATH>/scripts/lsp-go.sh
+  - <SKILL_PATH>/scripts/lsp-java.sh
+  - <SKILL_PATH>/scripts/lsp-rpc.py
 tools:
   - bash
-interface:
-  input:
-    file:      "string — path to the source file (relative to workspace)"
-    query:     "string — hover | definition | references | implementations | symbols | workspace-symbols | call-hierarchy | diagnostics"
-    symbol:    "string — symbol name to locate (used to resolve line/col if not provided)"
-    lang:      "string — python | go | java (auto-detected from file extension if omitted)"
-    workspace: "string — project root (default: git root)"
-    output:    "string — table (default, human-readable) | json (machine-readable)"
-  output:
-    result:    "structured findings — locations, symbol list, type info, diagnostics"
-    status:    "string — outcome"
+  - python3
 created_at: 2026-05-30
-updated_at: 2026-06-18
----
-## AI LSP Query — Semantic Code Intelligence
-
-## Skill Configuration
-
-This skill uses `~/.config/skill-config/ai-lsp-query/skill.properties` for LSP server preferences and timeouts.
-
-Before performing a query, check if `~/.config/skill-config/ai-lsp-query/` and `skill.properties` exist. If not, create them and notify the user: "Creating configuration directory and default properties file for ai-lsp-query to store your preferred language servers and timeout settings." Any new property added or saved back to this file MUST be approved by the user beforehand. When loading the file, explicitly report the loaded entries to the user.
-
-### Common Properties
-- `preferred_python_server`: `pylsp` or `pyright`.
-- `lsp_timeout`: (e.g., `5.0`) in seconds.
-
-Before performing a query, check `~/.config/skill-config/ai-lsp-query/skill.properties` to select the correct server and settings.
-
+updated_at: 2026-07-29
 ---
 
-### Setup
+# AI LSP Query — semantic code intelligence
+
+Ask an LSP server the questions an IDE asks, and get AST-backed answers instead
+of grep guesses. `lsp-query.sh` is the only entrypoint other skills should call.
 
 ```bash
-chmod +x <SKILL-PATH>/scripts/lsp-query.sh
-chmod +x <SKILL-PATH>/scripts/lsp-*.sh
-
-# Install servers for the languages you need:
-pip install python-lsp-server            # Python
-go install golang.org/x/tools/gopls@latest  # Go
-# Java: see lsp-java.sh stub for status
+<SKILL_PATH>/scripts/lsp-query.sh --file <path> --query <type> [--symbol <name>]
 ```
-
----
 
 ### Query Reference
 
@@ -123,194 +62,20 @@ go install golang.org/x/tools/gopls@latest  # Go
 
 ---
 
-### Usage Examples
 
-```bash
-# Find all call sites of a function across the project
-<SKILL-PATH>/scripts/lsp-query.sh \
-  -f src/orders/service.py \
-  -q references \
-  -s "process_order"
+## Output
 
-# Get type info at a specific position (0-based line/col)
-<SKILL-PATH>/scripts/lsp-query.sh \
-  -f internal/handler/order.go \
-  -q hover \
-  --line 54 --col 12
+Default output is a human-readable table. Pass `--output json` when another
+script or skill consumes the result — that is the machine-readable projection,
+and it keeps raw server responses out of context.
 
-# Jump-to-definition — where is this declared?
-<SKILL-PATH>/scripts/lsp-query.sh \
-  -f src/api/routes.py \
-  -q definition \
-  -s "OrderRepository"
+Language support: Python and Go are implemented; Java is a stub. Details and
+install commands are in `references/setup.md`.
 
-# Full call hierarchy — callers and callees
-<SKILL-PATH>/scripts/lsp-query.sh \
-  -f internal/service/payment.go \
-  -q call-hierarchy \
-  -s "Charge"
+## Read next
 
-# List all symbols in a file (functions, classes, methods)
-<SKILL-PATH>/scripts/lsp-query.sh \
-  -f src/models/order.py \
-  -q symbols
-
-# Search workspace for a type name
-<SKILL-PATH>/scripts/lsp-query.sh \
-  -q workspace-symbols \
-  -s "UserRepository" \
-  --lang python
-
-# Get all errors/warnings for a file
-<SKILL-PATH>/scripts/lsp-query.sh \
-  -f src/service/checkout.py \
-  -q diagnostics
-
-# Machine-readable JSON output for consumption by another script
-<SKILL-PATH>/scripts/lsp-query.sh \
-  -f src/orders/service.py \
-  -q references \
-  -s "process_order" \
-  --output json | jq '.locations[]'
-```
-
----
-
-### Integration with Other Skills
-
-`ai-lsp-query` is designed to be called by other skills that need semantic
-context before generating or modifying code. The `--output json` flag makes
-it pipeable.
-
-**Example: verify a generated method signature matches the actual interface**
-```bash
-# Get the interface's symbol list as JSON
-SYMBOLS=$(
-  <SKILL-PATH>/scripts/lsp-query.sh \
-    -f src/repository.py \
-    -q symbols \
-    --output json
-)
-
-# Extract method names and pass to a validator
-echo "$SYMBOLS" | jq -r '.symbols[] | select(.kind == "Method") | .name'
-```
-
-**Example: find all callers before refactoring a function**
-```bash
-<SKILL-PATH>/scripts/lsp-query.sh \
-  -f src/payment/gateway.py \
-  -q call-hierarchy \
-  -s "charge_card" \
-  --output json \
-  | jq '.callers[] | "\(.name) at \(.location)"'
-```
-
-**Example: check a file for errors after AI-generated edits**
-```bash
-<SKILL-PATH>/scripts/lsp-query.sh \
-  -f src/api/orders.py \
-  -q diagnostics \
-  --output json \
-  | jq '.diagnostics[] | select(.severity == "ERROR")'
-```
-
----
-
-### Language Status & Server Requirements
-
-#### Python — `pylsp` (implemented)
-```bash
-# Minimal
-pip install python-lsp-server
-
-# With type checking
-pip install python-lsp-server pylsp-mypy
-
-# Verify
-pylsp --version
-```
-
-The wrapper auto-activates the project's `.venv`, `venv`, or `env` directory.
-Falls back to the active virtual environment (`$VIRTUAL_ENV`), then system Python.
-
-#### Go — `gopls` (implemented)
-```bash
-go install golang.org/x/tools/gopls@latest
-export PATH=$PATH:$(go env GOPATH)/bin
-
-# Verify
-gopls version
-```
-
-The wrapper resolves the `go.mod` root automatically — you don't need to set
-`--workspace` manually for Go projects.
-
-#### Java — `jdtls` (stub — next iteration)
-```bash
-# When implemented, prerequisites will be:
-brew install jdtls   # macOS
-# or manual download: github.com/eclipse-jdtls/eclipse.jdt.ls/releases
-
-export JDTLS_HOME=/path/to/jdtls
-```
-
-Until implemented, `lsp-java.sh` exits with a clear message listing interim
-alternatives (Maven dependency tree, grep-based symbol search, IntelliJ CLI).
-See the Phase A/B/C implementation plan inside `lsp-java.sh`.
-
----
-
-### Architecture
-
-```
-lsp-query.sh  (dispatcher)
-     │
-     ├── lsp-python.sh   ─── activates venv, selects pylsp/pyright
-     ├── lsp-go.sh       ─── resolves go.mod root, configures gopls
-     └── lsp-java.sh     ─── stub (jdtls — next iteration)
-              │
-              └──► lib/lsp-rpc.py   (JSON-RPC engine)
-                        │
-                        ├── LspSession     — process lifecycle, stdio framing
-                        ├── Query methods  — hover, references, definition, ...
-                        └── Formatters     — table (human) | json (machine)
-```
-
-`lsp-rpc.py` is language-agnostic. Adding a new language requires only a new
-`lsp-<lang>.sh` wrapper that sets `--server-cmd` and `--language-id` correctly.
-The protocol handling, query dispatch, and output formatting are inherited for free.
-
----
-
-### Adding a New Language
-
-Create `<SKILL-PATH>/scripts/lsp-<lang>.sh`:
-
-```bash
-#!/usr/bin/env bash
-# Minimal new language wrapper
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RPC_SCRIPT="${SCRIPT_DIR}/lib/lsp-rpc.py"
-
-# 1. Parse forwarded args (copy the arg-parsing block from lsp-go.sh)
-# 2. Check the LSP server binary exists
-# 3. Set SERVER_CMD and INIT_OPTIONS for this language
-# 4. Call:
-
-exec python3 "$RPC_SCRIPT" \
-  --server-cmd  "$SERVER_CMD" \
-  --workspace   "$WORKSPACE" \
-  --file        "$FILE" \
-  --query       "$QUERY" \
-  --language-id "<lang-id>" \
-  --output      "$OUTPUT" \
-  --timeout     "$TIMEOUT" \
-  --init-options "$INIT_OPTIONS"
-```
-
-Then register the extension in `lsp-query.sh`'s `detect_language()` function:
-```bash
-myext) echo "mylang" ;;
-```
+| file | when |
+|---|---|
+| `references/setup.md` | installing servers, a missing binary, checking language support |
+| `references/examples.md` | concrete invocations, calling this skill from another skill |
+| `references/internals.md` | modifying the dispatcher, RPC engine, or adding a language |
