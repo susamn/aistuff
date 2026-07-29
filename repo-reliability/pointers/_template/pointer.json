@@ -1,0 +1,14 @@
+{
+  "id": "TODO-kebab-case-id",
+  "name": "TODO Human name",
+  "category": "TODO commits|contributors|pull-requests|issues|releases|hygiene",
+  "source": "TODO git|forge|content",
+  "requires": ["git"],
+  "order": 999,
+  "thresholds": {
+    "metric": "TODO_name_of_the_summary_value",
+    "direction": "higher_is_worse",
+    "warning": 0,
+    "critical": 0
+  }
+}

@@ -75,6 +75,7 @@ Skills are modular packages. Skill-specific scripts are stored within the skill 
 | `skill-manager`                | system      | "audit my skills", "check skill compliance", "manage skills"                                                           | 2026-05-30 | 2026-05-30 | Yes     |
 | global-applications-guidelines  | execution   | "want to build a new app", "lets work on a project", "lets create a new app"                                          | 2026-05-30 | 2026-05-30 | Yes     |
 | brainstorming                   | planning    | "lets brainstorm on an idea", "lets plan an idea", "lets plan a project", "lets think about an idea", "I have an idea" | 2026-05-30 | 2026-05-30 | Yes     |
+| `repo-reliability`              | analysis    | "analyze this repo", "repo reliability report", "how fragile is this project", "analyze commit patterns"               | 2026-07-28 | 2026-07-28 | Yes     |
 
 More skills will appear here as they are added to the dotfiles.
 

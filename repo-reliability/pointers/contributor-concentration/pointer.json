@@ -1,0 +1,14 @@
+{
+  "id": "contributor-concentration",
+  "name": "Contributor concentration",
+  "category": "contributors",
+  "source": "git",
+  "requires": ["git"],
+  "order": 30,
+  "thresholds": {
+    "metric": "bus_factor",
+    "direction": "lower_is_worse",
+    "warning": 2,
+    "critical": 1
+  }
+}

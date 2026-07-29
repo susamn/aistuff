@@ -1,0 +1,14 @@
+{
+  "id": "commit-size-discipline",
+  "name": "Commit size discipline",
+  "category": "commits",
+  "source": "git",
+  "requires": ["git"],
+  "order": 10,
+  "thresholds": {
+    "metric": "giant_commit_pct",
+    "direction": "higher_is_worse",
+    "warning": 5,
+    "critical": 15
+  }
+}

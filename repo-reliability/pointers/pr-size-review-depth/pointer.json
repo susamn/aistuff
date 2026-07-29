@@ -1,0 +1,14 @@
+{
+  "id": "pr-size-review-depth",
+  "name": "PR size vs review depth",
+  "category": "pull-requests",
+  "source": "forge",
+  "requires": ["forge-cache"],
+  "order": 40,
+  "thresholds": {
+    "metric": "giant_pr_pct",
+    "direction": "higher_is_worse",
+    "warning": 10,
+    "critical": 25
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "code-churn-half-life",
+  "name": "Code churn half-life",
+  "category": "commits",
+  "source": "git",
+  "requires": ["git"],
+  "order": 20,
+  "thresholds": {
+    "metric": "churn_30d_pct",
+    "direction": "higher_is_worse",
+    "warning": 25,
+    "critical": 45
+  }
+}

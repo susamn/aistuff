@@ -1,0 +1,14 @@
+{
+  "id": "pr-distribution-over-time",
+  "name": "PR distribution over time",
+  "category": "pull-requests",
+  "source": "forge",
+  "requires": ["forge-cache"],
+  "order": 50,
+  "thresholds": {
+    "metric": "velocity_spike_ratio",
+    "direction": "higher_is_worse",
+    "warning": 3,
+    "critical": 5
+  }
+}

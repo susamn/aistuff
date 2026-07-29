@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Repo reliability report</title>
+<style>
+:root {
+  --bg: #f5f4f0; --card: #ffffff; --ink: #1c1c1a; --muted: #6b6a64;
+  --line: #e2e0d8; --accent: #4f5d95;
+  --healthy: #2e8f63; --healthy-bg: #e2f2ea;
+  --warning: #b07c1e; --warning-bg: #f8eed7;
+  --critical: #bb4444; --critical-bg: #f9e4e4;
+  --unknown: #8a8880; --unknown-bg: #eceae3;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #191917; --card: #232320; --ink: #e8e6df; --muted: #a09e95;
+    --line: #3a3934; --accent: #93a1d8;
+    --healthy: #5cc498; --healthy-bg: #1e3a2d;
+    --warning: #ddaf54; --warning-bg: #3d3321;
+    --critical: #e07a7a; --critical-bg: #422323;
+    --unknown: #94928a; --unknown-bg: #2e2d29;
+  }
+}
+* { box-sizing: border-box; margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 system-ui, sans-serif; padding: 24px; }
+.wrap { max-width: 1060px; margin: 0 auto; }
+header { display: flex; align-items: baseline; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; }
+h1 { font-size: 21px; font-weight: 600; }
+h1 span { color: var(--muted); font-weight: 400; }
+.crumb { color: var(--muted); font-size: 14px; cursor: pointer; }
+.crumb:hover { color: var(--accent); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+.badge { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px; }
+.b-healthy  { color: var(--healthy);  background: var(--healthy-bg); }
+.b-warning  { color: var(--warning);  background: var(--warning-bg); }
+.b-critical { color: var(--critical); background: var(--critical-bg); }
+.b-unknown  { color: var(--unknown);  background: var(--unknown-bg); }
+.projrow { display: flex; align-items: center; gap: 16px; cursor: pointer; margin-bottom: 10px; transition: border-color .15s; flex-wrap: wrap; }
+.projrow:hover { border-color: var(--accent); }
+.projrow .pname { font-weight: 600; font-size: 16px; flex: 1 1 220px; overflow-wrap: anywhere; }
+.projrow .pmeta { color: var(--muted); font-size: 13px; }
+.phead { margin-bottom: 14px; }
+.phead .remote { color: var(--muted); font-family: ui-monospace, monospace; font-size: 13px; word-break: break-all; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.chip { font-size: 12px; color: var(--muted); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.pcard { cursor: pointer; transition: border-color .15s, transform .15s; display: flex; flex-direction: column; gap: 8px; }
+.pcard:hover { border-color: var(--accent); transform: translateY(-1px); }
+.pcard .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.pcard .pname { font-size: 13px; color: var(--muted); }
+.pcard .val { font-size: 26px; font-weight: 650; }
+.pcard .val small { font-size: 12px; font-weight: 400; color: var(--muted); margin-left: 6px; }
+.pcard .ev { font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 8px; margin-top: auto; }
+.overlay { position: fixed; inset: 0; background: rgba(10,10,8,.55); display: flex; justify-content: center; align-items: flex-start; padding: 4vh 16px; overflow: auto; z-index: 10; }
+.panel { background: var(--card); border-radius: 12px; max-width: 860px; width: 100%; padding: 24px 28px; border: 1px solid var(--line); }
+.panel h2 { font-size: 18px; margin-bottom: 4px; display: flex; align-items: center; gap: 12px; }
+.panel .sub { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+.panel .narrative { font-size: 14px; margin-bottom: 18px; color: var(--ink); }
+.vis { margin-bottom: 22px; }
+.vis h3 { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--muted); }
+.vis svg { max-width: 100%; height: auto; display: block; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 600; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 6px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; }
+.close { float: right; cursor: pointer; color: var(--muted); font-size: 22px; line-height: 1; }
+.close:hover { color: var(--ink); }
+.empty { text-align: center; color: var(--muted); padding: 60px 0; }
+.mini { height: 42px; display: flex; align-items: flex-end; gap: 2px; }
+.mini div { flex: 1; border-radius: 2px 2px 0 0; min-height: 2px; }
+.conf { font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Repo reliability <span>· process-health report</span></h1>
+    <div class="crumb" id="crumb"></div>
+  </header>
+  <main id="app"></main>
+</div>
+<script id="rr-data" type="application/json">__RR_DATA_JSON__</script>
+<script>
+"use strict";
+const DATA = JSON.parse(document.getElementById("rr-data").textContent || "[]");
+const PALETTE = ["#6b7fd7","#5dbb8f","#e0a35c","#d76b6b","#9a6bd7","#5cc2e0","#8a8880"];
+const app = document.getElementById("app");
+const crumb = document.getElementById("crumb");
+let view = { name: "projects", proj: null };
+
+function bandBadge(b) { return `<span class="badge b-${b}">${b}</span>`; }
+function esc(s) { return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function fmt(v) { return typeof v === "number" ? v.toLocaleString() : esc(v); }
+
+function svg(w, h) {
+  const s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  s.setAttribute("viewBox", `0 0 ${w} ${h}`); s.setAttribute("width", w);
+  return s;
+}
+function el(s, tag, attrs, text) {
+  const e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text != null) e.textContent = text;
+  s.appendChild(e); return e;
+}
+const AXIS = "var(--muted)", GRID = "var(--line)";
+
+function barChart(data, color) {
+  const W = 780, H = 220, L = 46, B = 40, max = Math.max(1, ...data.map(d => d.value));
+  const s = svg(W, H), bw = (W - L - 10) / data.length;
+  [0, .5, 1].forEach(f => {
+    const y = H - B - f * (H - B - 14);
+    el(s, "line", { x1: L, y1: y, x2: W - 4, y2: y, stroke: GRID, "stroke-width": 1 });
+    el(s, "text", { x: L - 6, y: y + 4, "text-anchor": "end", "font-size": 11, fill: AXIS }, Math.round(max * f).toLocaleString());
+  });
+  data.forEach((d, i) => {
+    const h = (d.value / max) * (H - B - 14);
+    el(s, "rect", { x: L + i * bw + 2, y: H - B - h, width: Math.max(2, bw - 4), height: Math.max(1, h), rx: 2, fill: color || PALETTE[0] });
+    if (data.length <= 16 || i % Math.ceil(data.length / 12) === 0)
+      el(s, "text", { x: L + i * bw + bw / 2, y: H - B + 14, "text-anchor": "middle", "font-size": 10, fill: AXIS }, String(d.label).slice(0, 8));
+  });
+  return s;
+}
+
+function lineChart(series) {
+  const labels = [...new Set(series.flatMap(sr => sr.points.map(p => p.label)))].sort();
+  const W = 780, H = 240, L = 46, B = 40;
+  const max = Math.max(1, ...series.flatMap(sr => sr.points.map(p => p.value)));
+  const s = svg(W, H);
+  const x = i => L + (labels.length < 2 ? 0 : i * (W - L - 12) / (labels.length - 1));
+  const y = v => H - B - (v / max) * (H - B - 16);
+  [0, .5, 1].forEach(f => {
+    el(s, "line", { x1: L, y1: y(max * f), x2: W - 4, y2: y(max * f), stroke: GRID });
+    el(s, "text", { x: L - 6, y: y(max * f) + 4, "text-anchor": "end", "font-size": 11, fill: AXIS }, Math.round(max * f).toLocaleString());
+  });
+  labels.forEach((lb, i) => {
+    if (labels.length <= 14 || i % Math.ceil(labels.length / 10) === 0)
+      el(s, "text", { x: x(i), y: H - B + 14, "text-anchor": "middle", "font-size": 10, fill: AXIS }, lb);
+  });
+  series.forEach((sr, si) => {
+    const m = new Map(sr.points.map(p => [p.label, p.value]));
+    const pts = labels.map((lb, i) => m.has(lb) ? `${x(i)},${y(m.get(lb))}` : null).filter(Boolean);
+    el(s, "polyline", { points: pts.join(" "), fill: "none", stroke: PALETTE[si % PALETTE.length], "stroke-width": 2 });
+  });
+  const wrap = document.createElement("div");
+  wrap.appendChild(s);
+  wrap.insertAdjacentHTML("beforeend", `<div class="legend">${series.map((sr, i) =>
+    `<span><i style="background:${PALETTE[i % PALETTE.length]}"></i>${esc(sr.name)}</span>`).join("")}</div>`);
+  return wrap;
+}
+
+function scatterChart(v) {
+  const W = 780, H = 260, L = 52, B = 44;
+  const xs = v.data.map(p => p.x), ys = v.data.map(p => p.y);
+  const mx = Math.max(1, ...xs), my = Math.max(1, ...ys);
+  const s = svg(W, H);
+  const X = x => L + Math.sqrt(x / mx) * (W - L - 14);
+  const Y = y => H - B - (y / my) * (H - B - 16);
+  [0, .5, 1].forEach(f => {
+    el(s, "line", { x1: L, y1: Y(my * f), x2: W - 4, y2: Y(my * f), stroke: GRID });
+    el(s, "text", { x: L - 6, y: Y(my * f) + 4, "text-anchor": "end", "font-size": 11, fill: AXIS }, Math.round(my * f));
+  });
+  [.25, 1].forEach(f => el(s, "text", { x: X(mx * f), y: H - B + 16, "text-anchor": "middle", "font-size": 10, fill: AXIS }, Math.round(mx * f).toLocaleString()));
+  v.data.forEach(p => {
+    const c = el(s, "circle", { cx: X(p.x), cy: Y(p.y), r: 4, fill: PALETTE[0], "fill-opacity": .55 });
+    el(c, "title", {}, `${p.label || ""} (${p.x.toLocaleString()}, ${p.y})`);
+  });
+  if (v.axes) el(s, "text", { x: W / 2, y: H - 6, "text-anchor": "middle", "font-size": 11, fill: AXIS }, `${v.axes.x} (sqrt scale) vs ${v.axes.y}`);
+  return s;
+}
+
+function stackedBar(v) {
+  const W = 780, H = 250, L = 46, B = 44, labels = v.labels, series = v.series;
+  const totals = labels.map((_, i) => series.reduce((a, sr) => a + (sr.values[i] || 0), 0));
+  const max = Math.max(1, ...totals);
+  const s = svg(W, H), bw = (W - L - 10) / labels.length;
+  [0, .5, 1].forEach(f => {
+    const y = H - B - f * (H - B - 14);
+    el(s, "line", { x1: L, y1: y, x2: W - 4, y2: y, stroke: GRID });
+    el(s, "text", { x: L - 6, y: y + 4, "text-anchor": "end", "font-size": 11, fill: AXIS }, Math.round(max * f).toLocaleString());
+  });
+  labels.forEach((lb, i) => {
+    let acc = 0;
+    series.forEach((sr, si) => {
+      const val = sr.values[i] || 0;
+      if (!val) return;
+      const h = (val / max) * (H - B - 14);
+      const yAcc = (acc / max) * (H - B - 14);
+      el(s, "rect", { x: L + i * bw + 2, y: H - B - yAcc - h, width: Math.max(2, bw - 4), height: Math.max(1, h), fill: PALETTE[si % PALETTE.length] });
+      acc += val;
+    });
+    if (labels.length <= 14 || i % Math.ceil(labels.length / 10) === 0)
+      el(s, "text", { x: L + i * bw + bw / 2, y: H - B + 14, "text-anchor": "middle", "font-size": 10, fill: AXIS }, lb);
+  });
+  const wrap = document.createElement("div");
+  wrap.appendChild(s);
+  wrap.insertAdjacentHTML("beforeend", `<div class="legend">${series.map((sr, i) =>
+    `<span><i style="background:${PALETTE[i % PALETTE.length]}"></i>${esc(sr.name)}</span>`).join("")}</div>`);
+  return wrap;
+}
+
+function tableVis(v) {
+  const t = document.createElement("table");
+  t.innerHTML = `<thead><tr>${v.columns.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead>` +
+    `<tbody>${v.rows.map(r => `<tr>${r.map(c =>
+      `<td class="${typeof c === "number" ? "num" : ""}">${fmt(c)}</td>`).join("")}</tr>`).join("")}</tbody>`;
+  return t;
+}
+
+function checklistVis(v) {
+  const d = document.createElement("div");
+  d.innerHTML = v.items.map(it =>
+    `<div style="padding:4px 0"><span style="color:${it.ok ? "var(--healthy)" : "var(--critical)"}">${it.ok ? "✓" : "✗"}</span>
+     ${esc(it.label)} ${it.note ? `<span class="conf">— ${esc(it.note)}</span>` : ""}</div>`).join("");
+  return d;
+}
+
+function renderVisual(v) {
+  switch (v.type) {
+    case "histogram": return barChart(v.data);
+    case "line": return lineChart(v.series);
+    case "scatter": return scatterChart(v);
+    case "stacked-bar": return stackedBar(v);
+    case "table": return tableVis(v);
+    case "checklist": return checklistVis(v);
+    default: return document.createTextNode("");
+  }
+}
+
+function bandColor(b) { return `var(--${b === "unknown" ? "unknown" : b})`; }
+
+function renderProjects() {
+  crumb.textContent = "";
+  if (!DATA.length) { app.innerHTML = `<div class="empty">No projects analyzed yet. Run the skill against a repo to populate this report.</div>`; return; }
+  app.innerHTML = "";
+  DATA.forEach((b, i) => {
+    const p = b.project;
+    const row = document.createElement("div");
+    row.className = "card projrow";
+    row.innerHTML = `<div class="pname">${esc(p.name)}</div>
+      <div class="pmeta">${p.commits.toLocaleString()} commits · ${p.contributors} contributors · ${p.age_years} yrs</div>
+      <div class="pmeta">analyzed ${esc(p.analyzed_at)}</div>${bandBadge(b.overall_band)}`;
+    row.onclick = () => { view = { name: "dash", proj: i }; render(); };
+    app.appendChild(row);
+  });
+}
+
+function renderDash() {
+  const b = DATA[view.proj], p = b.project;
+  crumb.innerHTML = `← all projects`;
+  crumb.onclick = () => { view = { name: "projects" }; render(); };
+  app.innerHTML = "";
+  const head = document.createElement("div");
+  head.className = "card phead";
+  head.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+      <div><div style="font-size:18px;font-weight:650">${esc(p.name)}</div>
+      <div class="remote">${esc(p.remote || "(local repository)")}</div></div>
+      <div>${bandBadge(b.overall_band)}</div></div>
+    <div class="chips">
+      <span class="chip">age ${p.age_years} yrs</span>
+      <span class="chip">${p.commits.toLocaleString()} commits</span>
+      <span class="chip">${p.contributors} contributors</span>
+      <span class="chip">branch ${esc(p.branch)}</span>
+      <span class="chip">analyzed ${esc(p.analyzed_at)}</span></div>`;
+  app.appendChild(head);
+  const grid = document.createElement("div");
+  grid.className = "grid";
+  b.pointers.forEach(pt => {
+    const c = document.createElement("div");
+    c.className = "card pcard";
+    const s = pt.summary;
+    const max = Math.max(1, ...(s.series || []).map(d => d.value));
+    c.innerHTML = `<div class="top"><div class="pname">${esc(pt.name)}</div>${bandBadge(s.band)}</div>
+      <div class="val">${s.value === null ? "—" : fmt(s.value)}<small>${esc(s.unit)}</small></div>
+      <div class="mini">${(s.series || []).slice(0, 24).map(d =>
+        `<div style="height:${Math.max(4, 100 * d.value / max)}%;background:${bandColor(s.band)};opacity:.75" title="${esc(d.label)}: ${d.value}"></div>`).join("")}</div>
+      <div class="ev">${esc(s.evidence)} <span class="conf">· confidence: ${esc(pt.confidence)}</span></div>`;
+    c.onclick = () => openDetail(pt);
+    grid.appendChild(c);
+  });
+  app.appendChild(grid);
+}
+
+function openDetail(pt) {
+  const ov = document.createElement("div");
+  ov.className = "overlay";
+  ov.onclick = e => { if (e.target === ov) ov.remove(); };
+  const panel = document.createElement("div");
+  panel.className = "panel";
+  panel.innerHTML = `<span class="close" title="close">×</span>
+    <h2>${esc(pt.name)} ${bandBadge(pt.summary.band)}</h2>
+    <div class="sub">${esc(pt.category)} · source: ${esc(pt.source)} · window ${esc(pt.window.from)} → ${esc(pt.window.to)} · confidence ${esc(pt.confidence)}</div>
+    <div class="narrative">${esc(pt.detail.narrative)}</div>`;
+  panel.querySelector(".close").onclick = () => ov.remove();
+  pt.detail.visuals.forEach(v => {
+    const d = document.createElement("div");
+    d.className = "vis";
+    d.innerHTML = `<h3>${esc(v.title)}</h3>`;
+    d.appendChild(renderVisual(v));
+    panel.appendChild(d);
+  });
+  ov.appendChild(panel);
+  document.body.appendChild(ov);
+}
+
+function render() { view.name === "projects" ? renderProjects() : renderDash(); }
+document.addEventListener("keydown", e => { if (e.key === "Escape") document.querySelector(".overlay")?.remove(); });
+render();
+</script>
+</body>
+</html>
