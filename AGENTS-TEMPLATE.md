@@ -73,6 +73,7 @@ A skill is deployed only when its source directory is **not** suffixed `.disable
 | Skill                           | Intent      | Trigger examples                                                                                                       | Created | Updated | Enabled |
 | ------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------- | ------- | ------- | ------- |
 | `pr-review`                     | code-review | "review this PR", "generate PR review prompt"                                                                          | 2026-05-30 | 2026-05-30 | Yes     |
+| `pr-review-ui`                  | code-review | "pr review ui", "generate HTML pr review", "interactive pr review", "next chunk"                                       | 2026-05-30 | 2026-07-29 | Yes     |
 | `openapi-schema-creator`        | api-design  | "create an OpenAPI schema", "design an API"                                                                            | 2026-05-30 | 2026-05-30 | Yes     |
 | `skill-creator`                 | meta        | "create a new skill", "add a skill"                                                                                    | 2026-05-30 | 2026-05-30 | Yes     |
 | `music-tagger`                  | media       | "update media tags", "batch tag songs"                                                                                 | 2026-05-30 | 2026-05-30 | Yes     |
