@@ -53,7 +53,9 @@ or tools — never hardcode absolute paths.
 
 ## Available skills
 
-Skills are modular packages. Skill-specific scripts are stored within the skill folder (e.g., `skills/name/scripts/`) to ensure encapsulation and minimize security blast radius. Only enable scripts that are `Enabled` in the following table.
+Skills are modular packages. Skill-specific scripts are stored within the skill folder (e.g., `skills/name/scripts/`) to ensure encapsulation and minimize security blast radius.
+
+A skill is deployed only when its source directory is **not** suffixed `.disabled` — that suffix is the sole enable/disable mechanism, applied by `do-stow.sh`. The `Enabled` column below mirrors that state for reference; nothing reads it. A skill marked `No` is not symlinked into this agent's skills directory and cannot be invoked.
 
 **Rule for accessing skill scripts:** All skill resources are located at `{{AGENT_SKILLS_PATH}}/<skill-name>/`. When a skill references a script like `<SKILL_PATH>/scripts/run.sh` or `./scripts/run.sh` or `scripts/run.sh`, you must execute it using its absolute path: `{{AGENT_SKILLS_PATH}}/<skill-name>/scripts/run.sh`.
 
@@ -76,6 +78,7 @@ Skills are modular packages. Skill-specific scripts are stored within the skill 
 | global-applications-guidelines  | execution   | "want to build a new app", "lets work on a project", "lets create a new app"                                          | 2026-05-30 | 2026-05-30 | Yes     |
 | brainstorming                   | planning    | "lets brainstorm on an idea", "lets plan an idea", "lets plan a project", "lets think about an idea", "I have an idea" | 2026-05-30 | 2026-05-30 | Yes     |
 | `repo-reliability`              | analysis    | "analyze this repo", "repo reliability report", "how fragile is this project", "analyze commit patterns"               | 2026-07-28 | 2026-07-28 | Yes     |
+| `tui-creator`                  | system      | "create indexed TUI", "build TUI script", "create a TUI", "create subtree menu TUI"                                     | 2026-07-28 | 2026-07-28 | Yes     |
 
 More skills will appear here as they are added to the dotfiles.
 

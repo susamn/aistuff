@@ -1,7 +1,7 @@
 ---
 name: dotfiles-management
 description: Manage the dotfiles repository, stow packages, and configure agent skills
-version: 1.1.0
+version: 1.2.0
 triggers:
   - "manage dotfiles"
   - "add a skill"
@@ -14,8 +14,9 @@ guardrails:
   - Do not use absolute paths when environment variables are available.
   - Document any new shell aliases in workspace/.alias_descriptions.
 resources:
-  - ./do-stow.sh
-  - ./do-unstow.sh
+  - ~/dotfiles/do-stow.sh          # repo root, not skill-relative
+  - ~/dotfiles/do-unstow.sh
+  - ~/dotfiles/skills/AGENTS-TEMPLATE.md
 tools:
   - bash
 interface:
@@ -24,7 +25,7 @@ interface:
   output:
     status: "string — outcome of the operation"
 created_at: 2026-05-30
-updated_at: 2026-06-18
+updated_at: 2026-07-29
 ---
 ## Dotfiles management
 
@@ -48,20 +49,45 @@ Before performing any stow operation, check `~/.config/skill-config/dotfiles-man
 
 ```
 ~/dotfiles/
-├── .config/          # app configs (Hyprland, kitty, nvim, waybar, rofi, …)
-├── workspace/        # scripts, tools, sdk, services (stowed to ~/workspace/)
-├── skills/           # canonical skill definitions — NOT stowed to ~
-│   ├── .agents       # agent deployment config (skills path + instruction file)
+├── .config/            # app configs (Hyprland, kitty, nvim, waybar, rofi, …)
+├── mcp/                # MCP server definitions, synced by workspace/scripts/agm.sh
+├── workspace/          # scripts, tools, sdk, services (stowed to ~/workspace/)
+├── skills/             # git submodule — canonical skills, NOT stowed to ~
+│   ├── .agents             # agent deployment config (4 columns, see below)
+│   ├── AGENTS-TEMPLATE.md  # source of every agent's instruction file
 │   └── <skill-name>/
 │       └── SKILL.md
-├── do-stow.sh        # stow dotfiles + deploy skill and instruction symlinks
-├── do-unstow.sh      # reverse of do-stow.sh
-└── AGENTS.md         # this file
+├── .ignored            # extra ignore patterns read by do-stow.sh
+├── .stow-local-ignore  # stow's ignore list (REPLACES stow's built-in defaults)
+├── do-stow.sh          # stow + deploy skills + generate instructions + sync mcp
+├── do-unstow.sh        # reverse of do-stow.sh
+└── onboard.sh          # first-run machine bootstrap
 ```
 
-`skills/` is excluded from stow. `do-stow.sh` deploys skill symlinks to each
-agent's skills directory and creates instruction file symlinks (e.g.
-`~/.claude/CLAUDE.md`) outside the repo.
+`skills/` is excluded from stow via `^skills$` in `.stow-local-ignore`.
+`do-stow.sh` then does three things beyond stowing:
+
+1. **Skills** — symlinks every active skill into **every** agent's skills path.
+   There is no per-agent skill selection; all agents receive all skills.
+2. **Instructions** — *generates* each agent's instruction file from
+   `skills/AGENTS-TEMPLATE.md`, substituting `{{AGENT_SKILLS_PATH}}` and
+   `{{INSTRUCTION_PATH}}`. These are **real files, not symlinks, and they are
+   overwritten on every run.** Never edit `~/.claude/CLAUDE.md` directly — the
+   change will be silently lost. Edit `skills/AGENTS-TEMPLATE.md` instead.
+3. **MCP** — runs `workspace/scripts/agm.sh sync` to deploy MCP configs.
+
+### Enabling and disabling a skill
+
+Deployment is decided by directory name alone: a skill directory suffixed
+`.disabled` has its symlink actively removed from every agent and is not
+deployed. Nothing reads the `Enabled` column in the skills table — it is
+documentation that must be updated by hand to match.
+
+```bash
+mv ~/dotfiles/skills/<name> ~/dotfiles/skills/<name>.disabled   # disable
+mv ~/dotfiles/skills/<name>.disabled ~/dotfiles/skills/<name>   # re-enable
+bash ~/dotfiles/do-stow.sh                                      # apply
+```
 
 ### Stow commands
 
@@ -102,11 +128,20 @@ Markdown body: step-by-step instructions for the agent. Use <SKILL_PATH> placeho
 
 ### Adding a new agent
 
-Edit `skills/.agents` (three columns: name, skills path, instruction file path):
+Edit `skills/.agents` — four whitespace-separated columns, `-` meaning "none":
+
+| column | meaning |
+|---|---|
+| `name` | agent identifier |
+| `skills_path` | where skill symlinks are deployed |
+| `instruction_symlink` | absolute path of the generated instruction file |
+| `mcp_config_path` | absolute path for the synced MCP servers JSON |
 
 ```
-gemini   ~/.gemini/skills   ~/.gemini/GEMINI.md
-cursor   ~/.cursor/rules    -
+gemini   ~/.gemini/skills   ~/.gemini/GEMINI.md   ~/.gemini/mcp.json
+cursor   ~/.cursor/rules    -                     ~/.cursor/mcp.json
 ```
 
-Then run `./do-stow.sh` and commit `skills/.agents`.
+Then run `./do-stow.sh`. Because `skills/` is a submodule, committing is two
+steps: commit `.agents` inside `~/dotfiles/skills`, then `git add skills` in
+`~/dotfiles` to bump the submodule pointer.

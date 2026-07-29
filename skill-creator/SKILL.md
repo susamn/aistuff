@@ -1,14 +1,14 @@
 ---
 name: skill-creator
 description: Guide for creating effective skills that extend different agents' capabilities. Use when creating new skills or updating existing skills with specialized knowledge, workflows, or tool integrations.
-version: 1.1.0
+version: 1.2.0
 triggers:
   - "create a new skill"
   - "add a skill"
 intent: meta
 config_dir: ~/.config/skill-config/skill-creator
 created_at: 2026-05-30
-updated_at: 2026-06-18
+updated_at: 2026-07-29
 ---
 
 # Skill Creator
@@ -136,11 +136,38 @@ Keep SKILL.md under 500 lines. Split content when approaching this limit.
 1. **Understand** - Gather concrete usage examples
 2. **Plan** - Identify reusable scripts, references, assets
 3. **Initialize** - `mkdir -p ~/dotfiles/skills/<name>`
-4. **Edit** - Write `~/dotfiles/skills/<name>/SKILL.md` referencing scripts via `$SCRIPTS_PATH` or `$TOOLS_PATH`.
-5. **Register** - Add the new skill to the `## Available skills` table in `~/dotfiles/templates/AGENTS.md.template`.
-6. **Deploy** - Run `bash ~/dotfiles/do-stow.sh` — this generates agent-specific instruction files from the template and symlinks the skill into every agent's skills directory.
-7. **Commit** - `git add skills/<name>/ templates/AGENTS.md.template && git commit -m "skills: add <name>"`
+4. **Edit** - Write `~/dotfiles/skills/<name>/SKILL.md`. Reference skill-local
+   scripts as `<SKILL_PATH>/scripts/<script>`. Use `$TOOLS_PATH` / `$SCRIPTS_PATH`
+   only for genuinely global utilities that live outside the skill.
+5. **Register** - Add the skill to the `## Available skills` table in
+   `~/dotfiles/skills/AGENTS-TEMPLATE.md`.
+6. **Deploy** - Run `bash ~/dotfiles/do-stow.sh` — regenerates every agent's
+   instruction file from the template and symlinks the skill into every agent's
+   skills directory.
+7. **Commit** - `skills/` is a **git submodule**, so this is two commits: the
+   skill inside the submodule, then the pointer bump in the parent repo.
+   ```bash
+   git -C ~/dotfiles/skills add <name>/ AGENTS-TEMPLATE.md
+   git -C ~/dotfiles/skills commit -m "skills: add <name>"
+   git -C ~/dotfiles add skills
+   git -C ~/dotfiles commit -m "skills: bump submodule for <name>"
+   ```
 8. **Iterate** - Improve based on real usage
+
+## Enabling and disabling a skill
+
+`do-stow.sh` decides deployment from the directory name alone: a skill directory
+suffixed `.disabled` has its symlink removed from every agent and is not
+deployed. The `Enabled` column in the skills table is documentation of that
+state, not a mechanism — no script reads it.
+
+```bash
+mv ~/dotfiles/skills/<name> ~/dotfiles/skills/<name>.disabled   # disable
+bash ~/dotfiles/do-stow.sh
+```
+
+Always update the table's `Enabled` cell in the same change, or the two sources
+drift apart.
 
 ## What NOT to Include
 
