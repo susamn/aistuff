@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IndexedTUISpec",
+  "type": "object",
+  "properties": {
+    "title": { "type": "string", "default": "Indexed TUI Manager" },
+    "theme": { "type": "string", "enum": ["obsidian", "dracula", "nord", "cyberpunk", "emerald"], "default": "obsidian" },
+    "clamp_threshold": { "type": "integer", "default": 10 },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": { "type": "string" },
+                "label": { "type": "string" },
+                "cmd": { "type": "string" },
+                "use_fzf": { "type": "boolean", "default": false },
+                "cwd": { "type": "string" }
+              },
+              "required": ["key", "label", "cmd"]
+            }
+          }
+        },
+        "required": ["title", "items"]
+      }
+    }
+  },
+  "required": ["sections"]
+}
