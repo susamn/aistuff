@@ -35,6 +35,11 @@ def parse_frontmatter(text):
         end = next(i for i in range(1, len(lines)) if lines[i].strip() == "---")
     except StopIteration:
         return None, 0
+    # '...' is a YAML document-end marker: a real parser stops there, silently
+    # dropping every field below it. Surface it rather than parsing through.
+    for i in range(1, end):
+        if lines[i].strip() == "...":
+            return "DOCEND", i + 1
     data, key = {}, None
     for raw in lines[1:end]:
         if not raw.strip() or raw.lstrip().startswith("#"):
@@ -52,6 +57,11 @@ def parse_frontmatter(text):
 
 def strip_comment(s):
     return re.sub(r"\s+#.*$", "", s).strip()
+
+
+def prose_only(text):
+    """Drop fenced code blocks — examples and templates are not assertions."""
+    return re.sub(r"^```.*?^```", "", text, flags=re.S | re.M)
 
 
 def resolve(res, skill_dir):
@@ -109,7 +119,12 @@ def audit(skill_dir, name, disabled, table):
     text = open(md, encoding="utf-8").read()
     total_lines = len(text.splitlines())
 
-    fm, _ = parse_frontmatter(text)
+    fm, where = parse_frontmatter(text)
+    if fm == "DOCEND":
+        add("ERR", name, "frontmatter",
+            f"bare '...' at line {where} ends the YAML document — "
+            "every field below it is silently dropped")
+        return
     if fm is None:
         add("ERR", name, "frontmatter", "missing or unterminated YAML frontmatter")
         return
@@ -153,12 +168,17 @@ def audit(skill_dir, name, disabled, table):
         if not scripts:
             add("ERR", name, "kind", "pipeline skill has no scripts/")
         else:
-            blob = text + "".join(
+            # The script->agent boundary must be designed: either a summary
+            # projection over an artifact, or a documented compact output for
+            # skills that stream results directly and have no artifact.
+            blob = (text + "".join(
                 open(s, encoding="utf-8", errors="ignore").read()
-                for s in scripts if os.path.isfile(s))
-            if "summary" not in blob.lower():
+                for s in scripts if os.path.isfile(s))).lower()
+            documented = re.search(r"^#{2,}\s+output\b", text, re.I | re.M)
+            if not documented and "summary" not in blob and "projection" not in blob:
                 add("ERR", name, "contract",
-                    "no summary projection — agent must read the full artifact")
+                    "script->agent boundary undocumented — add a summary "
+                    "projection or an ## Output section")
 
     for s in scripts:
         if s.endswith(".sh") and not os.access(s, os.X_OK):
@@ -178,9 +198,15 @@ def audit(skill_dir, name, disabled, table):
     # ── config ceremony without state ────────────────────────────────────────
     # A real config user references the concrete path, not just the filename —
     # this avoids flagging docs that merely mention skill.properties.
-    if not fm.get("config_dir") and "skill-config/" in text:
+    cfg = fm.get("config_dir")
+    if not cfg and "skill-config/" in prose_only(text):
         add("WARN", name, "config",
             "references a skill-config path but declares no config_dir")
+    # config_dir is derivable from name; a hand-typed mismatch is silent drift.
+    expected = f"~/.config/skill-config/{name}"
+    if cfg and str(cfg).rstrip("/") != expected:
+        add("ERR", name, "config",
+            f"config_dir '{cfg}' != conventional '{expected}'")
 
     # ── registration & enabled-state ─────────────────────────────────────────
     if name not in table:

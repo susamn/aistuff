@@ -1,61 +1,62 @@
 ---
 name: music-tagger
 description: Batch update media file metadata (tags) using ffmpeg. Use when needing to update artist, album, or other ID3 tags for multiple files.
-version: 1.1.0
+version: 2.0.0
+kind: pipeline
 triggers:
   - "update media tags"
   - "batch tag songs"
   - "update artist metadata"
 intent: media
-config_dir: ~/.config/skill-config/music-tagger
+guardrails:
+  - Always use `-c copy` so ffmpeg never re-encodes the audio.
+  - Write to a temp file and replace on success — never edit in place.
+  - Confirm the mapping with the user before running it across a directory.
 resources:
-  - ./scripts/batch-tagger.py
+  - <SKILL_PATH>/scripts/batch-tagger.py
 tools:
   - ffmpeg
   - python3
-interface:
-  input:
-    directory: "string — Path to the directory containing media files"
-    mapping: "json — A mapping of filenames to tag dictionaries or artist strings"
 created_at: 2026-05-30
-updated_at: 2026-06-18
+updated_at: 2026-07-29
 ---
 
-# Media Tagger Skill
+# Music tagger
 
-This skill allows for efficient batch updating of media file metadata (especially .m4a and .mp3) using ffmpeg.
-
-## Skill Configuration
-
-This skill uses `~/.config/skill-config/music-tagger/skill.properties` for default mapping preferences.
-
-Before starting the workflow, check if `~/.config/skill-config/music-tagger/` and `skill.properties` exist. If not, create them and notify the user: "Creating configuration directory and default properties file for music-tagger to store your default artist and format preferences." Any new property added or saved back to this file MUST be approved by the user beforehand. When loading the file, explicitly report the loaded entries to the user.
-
-### Common Properties
-- `default_artist`: Default artist if not specified.
-- `output_format`: Preferred output format (e.g., `m4a`, `mp3`).
-
-Before starting the workflow, check `~/.config/skill-config/music-tagger/skill.properties` for defaults.
+Batch-updates media metadata (.m4a, .mp3) via ffmpeg.
 
 ## Workflow
 
-1. **Identify Files:** Locate the media files and determine the correct metadata (e.g., via web search or iTunes).
-2. **Create Mapping:** Prepare a JSON structure where keys are filenames and values are dictionaries of tags.
-   \`\`\`json
+1. **Identify** the files and the correct metadata.
+2. **Write a mapping** JSON — keys are filenames, values are a tag dict or a bare
+   artist string:
+
+   ```json
    {
      "song1.m4a": {"artist": "Artist Name", "album": "Album Name"},
      "song2.m4a": "Artist Name"
    }
-   \`\`\`
-3. **Execute Update:** Use the \`batch-tagger.py\` script to apply the changes.
+   ```
 
-## Commands
+3. **Run it:**
 
-\`\`\`bash
-python3 "<SKILL_PATH>/scripts/batch-tagger.py" /path/to/media mapping.json
-\`\`\`
+   ```bash
+   python3 "<SKILL_PATH>/scripts/batch-tagger.py" /path/to/media mapping.json
+   ```
 
-## Guardrails
-- Always use \`-c copy\` with ffmpeg to avoid re-encoding.
-- Verify file existence before attempting to update.
-- Use temporary files to prevent data loss on failure.
+4. **Report** the result lines. On failure, decide whether to retry, fix the
+   mapping, or ask the user — the script reports, it does not decide.
+
+## Output
+
+stdout is one tab-separated line per file, stderr carries progress and the count.
+Exit `0` all updated, `1` some failed, `2` could not run.
+
+```
+updated	song1.m4a	artist=Artist Name,album=Album Name
+failed	song2.m4a	Invalid data found when processing input
+missing	song3.m4a	no such file
+```
+
+Only failing lines need relaying in detail; the file itself is the handle for
+anything further.

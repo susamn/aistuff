@@ -1,80 +1,76 @@
 ---
 name: obsidian
-description: Work with Obsidian vaults (plain Markdown notes) and automate via obsidian-cli.
-version: 1.1.0
+description: Work with Obsidian vaults (plain Markdown notes on disk) and automate via obsidian-cli. Use when reading, creating, searching, or refactoring notes in an Obsidian vault.
+version: 2.0.0
+kind: guidance
 triggers:
   - "work with obsidian"
   - "notes in obsidian"
 intent: notes
-config_dir: ~/.config/skill-config/obsidian
-resources:
-  - ./local/bin/obsidian-cli
+guardrails:
+  - Do not edit `.obsidian/` workspace or plugin settings from scripts.
+  - Prefer `obsidian-cli move` over `mv` — it rewrites wikilinks across the vault.
 tools:
   - bash
+  - obsidian-cli
 created_at: 2026-05-30
-updated_at: 2026-06-18
+updated_at: 2026-07-29
 ---
 
 # Obsidian
 
-Obsidian vault = a normal folder on disk.
+An Obsidian vault is a normal folder on disk. Notes are plain Markdown and can be
+edited with any editor — reach for direct file edits when that is simpler, and
+Obsidian will pick the change up.
 
-## Skill Configuration
+`obsidian-cli` is **not currently installed on this machine**; the command
+recipes below assume it is present. Enable it via Settings → General → Command
+line interface.
 
-This skill uses `~/.config/skill-config/obsidian/skill.properties` to store the default vault path and other preferences.
+## Vault layout
 
-Before executing commands, check if `~/.config/skill-config/obsidian/` and `skill.properties` exist. If not, create them and notify the user: "Creating configuration directory and default properties file for obsidian to store your vault paths and indexing preferences." Any new property added or saved back to this file MUST be approved by the user beforehand. When loading the file, explicitly report the loaded entries to the user.
+- `*.md` — notes, plain Markdown
+- `.obsidian/` — workspace and plugin settings; leave alone
+- `*.canvas` — canvases, JSON
+- attachments — whatever folder is configured in Obsidian settings
 
-### Common Properties
-- `default_vault_name`: Name of the default vault.
-- `default_vault_path`: Absolute path to the default vault.
+## Finding the active vault
 
-Before executing commands, check `~/.config/skill-config/obsidian/skill.properties` to resolve the default vault.
+Obsidian tracks vaults in a config file, which is the source of truth:
 
-Vault structure (typical)
-- Notes: `*.md` (plain text Markdown; edit with any editor)
-- Config: `.obsidian/` (workspace + plugin settings; usually don’t touch from scripts)
-- Canvases: `*.canvas` (JSON)
-- Attachments: whatever folder you chose in Obsidian settings (images/PDFs/etc.)
+- **Linux/WSL2** — `~/.config/obsidian/obsidian.json`
+- **macOS** — `~/Library/Application Support/obsidian/obsidian.json`
 
-## Find the active vault(s)
+The vault name is normally the folder name. To resolve it quickly, use
+`obsidian-cli print-default --path-only` if a default is set; otherwise read the
+config file and take the entry with `"open": true`.
 
-Obsidian desktop tracks vaults here (source of truth):
-- **Linux/WSL2**: `~/.config/obsidian/obsidian.json`
-- **macOS**: `~/Library/Application Support/obsidian/obsidian.json`
+Set the default once with `obsidian-cli set-default "<vault-folder-name>"` —
+this is obsidian-cli's own mechanism, so the skill keeps no separate config.
 
-`obsidian-cli` resolves vaults from that file; vault name is typically the **folder name** (path suffix).
+## Commands
 
-Fast “what vault is active / where are the notes?”
-- If you’ve already set a default: `obsidian-cli print-default --path-only`
-- Otherwise, read the config file above and use the vault entry with `”open”: true`.
+Search:
 
-## obsidian-cli install
+```bash
+obsidian-cli search "query"          # note names
+obsidian-cli search-content "query"  # inside notes, with snippets and line numbers
+```
 
-Enable Command line interface in Settings → General
+Create, move, delete:
 
-## obsidian-cli quick start
+```bash
+obsidian-cli create "Folder/New note" --content "..." --open
+obsidian-cli move "old/path/note" "new/path/note"
+obsidian-cli delete "path/note"
+```
 
-**Note:** `obsidian-cli create` and `move` require the Obsidian URI handler (Obsidian desktop running). On Linux/WSL2 without a display, use direct file edits or `obsidian-web` instead.
+`move` updates `[[wikilinks]]` and Markdown links across the vault — that is the
+main reason to prefer it over `mv`.
 
-Pick a default vault (once):
-- `obsidian-cli set-default "<vault-folder-name>"`
-- `obsidian-cli print-default` / `obsidian-cli print-default --path-only`
+## Constraints
 
-Search
-- `obsidian-cli search "query"` (note names)
-- `obsidian-cli search-content "query"` (inside notes; shows snippets + lines)
-
-Create
-- `obsidian-cli create "Folder/New note" --content "..." --open`
-- Requires Obsidian URI handler (`obsidian://…`) working (Obsidian installed).
-- Avoid creating notes under “hidden” dot-folders (e.g. `.something/...`) via URI; Obsidian may refuse.
-
-Move/rename (safe refactor)
-- `obsidian-cli move "old/path/note" "new/path/note"`
-- Updates `[[wikilinks]]` and common Markdown links across the vault (this is the main win vs `mv`).
-
-Delete
-- `obsidian-cli delete "path/note"`
-
-Prefer direct edits when appropriate: open the `.md` file and change it; Obsidian will pick it up.
+- `create` and `move` need the Obsidian URI handler, which requires the desktop
+  app running. On Linux/WSL2 without a display, edit files directly or use
+  `obsidian-web`.
+- Avoid creating notes under dot-folders via URI; Obsidian may refuse.
