@@ -164,10 +164,11 @@ def audit(skill_dir, name, disabled, table):
     if kind == "guidance" and scripts:
         add("ERR", name, "kind",
             f"guidance skill has {len(scripts)} script(s) — reclassify or remove")
-    if kind == "pipeline":
-        if not scripts:
-            add("ERR", name, "kind", "pipeline skill has no scripts/")
-        else:
+    if kind == "pipeline" and not scripts:
+        add("ERR", name, "kind", "pipeline skill has no scripts/")
+    # A hybrid has a pipeline half, so its script->agent boundary matters too.
+    if kind in ("pipeline", "hybrid"):
+        if scripts:
             # The script->agent boundary must be designed: either a summary
             # projection over an artifact, or a documented compact output for
             # skills that stream results directly and have no artifact.

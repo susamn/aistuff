@@ -96,6 +96,30 @@ def bundle(meta_path, out_path, envelope_paths):
     print(out_path)
 
 
+def summary(bundle_path):
+    """Agent-facing projection: one line per pointer, then the artifact handle.
+
+    Exists so the agent never loads a whole bundle — which carries every
+    pointer's detail.visuals — just to report a few bands.
+    """
+    with open(bundle_path) as f:
+        b = json.load(f)
+    rows = []
+    for p in b.get("pointers", []):
+        s = p.get("summary", {})
+        val = "—" if s.get("value") is None else f"{s['value']} {s.get('unit', '')}".strip()
+        rows.append((p.get("pointer_id", "?"), s.get("band", "unknown"), val,
+                     (s.get("evidence") or "—").splitlines()[0][:60]))
+    rows.sort(key=lambda r: -BAND_RANK.get(r[1], 0))
+    w = [max((len(r[i]) for r in rows), default=1) for i in range(3)]
+    proj = b.get("project", {})
+    print(f"{proj.get('name', '?')}\toverall={b.get('overall_band', 'unknown')}\t"
+          f"{proj.get('commits', '?')} commits\t{proj.get('contributors', '?')} contributors")
+    for pid, band, val, ev in rows:
+        print(f"{pid:<{w[0]}}  {band:<{w[1]}}  {val:<{w[2]}}  {ev}")
+    print(f"<artifact>: {os.path.abspath(bundle_path)}")
+
+
 def stamp(template_path, data_dir, out_path):
     with open(template_path) as f:
         tpl = f.read()
@@ -123,6 +147,8 @@ if __name__ == "__main__":
         meta(sys.argv[2])
     elif cmd == "bundle":
         bundle(sys.argv[2], sys.argv[3], sys.argv[4:])
+    elif cmd == "summary":
+        summary(sys.argv[2])
     elif cmd == "stamp":
         stamp(sys.argv[2], sys.argv[3], sys.argv[4])
     else:

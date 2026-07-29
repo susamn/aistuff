@@ -1,7 +1,8 @@
 ---
 name: repo-reliability
 description: Analyze a git repository's development-process health and fragility — commit patterns, code churn, contributor concentration, PR flow vs review depth, issue responsiveness — via extensible per-pointer scripts that emit JSON envelopes, aggregated into a persistent multi-project self-contained HTML report. Use when asked to assess a repo's reliability, maturity, commit/PR patterns, or how fragile a project is.
-version: 1.0.0
+version: 2.0.0
+kind: pipeline
 triggers:
   - "analyze this repo"
   - "repo reliability report"
@@ -11,18 +12,18 @@ triggers:
 intent: analysis
 config_dir: ~/.config/skill-config/repo-reliability
 created_at: 2026-07-28
-updated_at: 2026-07-28
+updated_at: 2026-07-29
 guardrails:
   - Read-only against the analyzed repository — never modify, commit, or push to it
   - The report is a local file; do not publish or upload it without explicit user consent
   - Forge (GitHub) pointers need an authenticated gh CLI; when unavailable, skip them gracefully and still deliver the git-only report — never block on forge access
   - Metrics measure process health, a proxy for reliability — present bands with their evidence, never as verdicts on code quality
 resources:
-  - ./scripts/run-report.sh
-  - ./scripts/rr_build.py
-  - ./scripts/rr_common.py
-  - ./template/report.html
-  - ./references/envelope.md
+  - <SKILL_PATH>/scripts/run-report.sh
+  - <SKILL_PATH>/scripts/rr_build.py
+  - <SKILL_PATH>/scripts/rr_common.py
+  - <SKILL_PATH>/template/report.html
+  - <SKILL_PATH>/references/envelope.md
 tools:
   - bash
   - git
@@ -67,9 +68,30 @@ Do not add new properties without explicit user approval.
    `report.html` as an artifact if the environment supports it, otherwise tell
    the user where the file is and how to retrieve it. The report is fully
    self-contained (data inlined), so the single file is safe to move anywhere.
-5. Summarize the result in chat: overall band, the worst pointers with their
-   evidence lines, and any pointers skipped (e.g. no forge access) — never
-   present a band without its evidence.
+5. Read the digest — **never open the bundle to summarize it**:
+
+   ```bash
+   python3 <SKILL_PATH>/scripts/rr_build.py summary <data-file>
+   ```
+
+   Relay those lines: overall band, worst pointers first with their evidence, and
+   any skipped (e.g. no forge access). Never present a band without its evidence.
+
+## Output
+
+`summary` emits a project header, one line per pointer sorted worst-first, and
+the artifact path as the last line:
+
+```
+demo	overall=critical	412 commits	3 contributors
+contributor-concentration  critical  1 bus factor      a4f21c9
+commit-size-discipline     warning   18.2 % >1000 LOC  PR #412
+<artifact>: /home/user/.local/share/repo-reliability/data/demo.json
+```
+
+The bundle carries every pointer's `detail.visuals` — scatter sets up to 300
+points each. Open it only to investigate a specific line that looks wrong; the
+handle on the last line is how you get there.
 
 ## Adding a new pointer
 

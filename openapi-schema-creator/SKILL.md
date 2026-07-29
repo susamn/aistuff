@@ -3,7 +3,8 @@ name: openapi-schema-creator
 description: >
   Guided, conversational workflow for generating production-quality OpenAPI 3.1.0 schemas. 
   Trigger for designing, generating, or refining REST API contracts, entity models, or service interfaces.
-version: 1.1.0
+version: 2.0.0
+kind: guidance
 triggers:
   - "create an OpenAPI schema"
   - "design an API for my idea"
@@ -11,28 +12,16 @@ triggers:
   - "I want to build an API for"
   - "help me design an API contract"
 intent: api-design
-config_dir: ~/.config/skill-config/openapi-schema-creator
+guardrails:
+  - Re-output the full schema after every edit — never a fragment the user must merge.
+  - Do not write files without offering first; the user chooses the path.
 created_at: 2026-05-30
-updated_at: 2026-06-18
+updated_at: 2026-07-29
 ---
 
 # OpenAPI Schema Creator
 
 A structured lifecycle for transforming a raw service idea into a validated, production-ready OpenAPI 3.1.0 contract.
-
-## Skill Configuration
-
-This skill uses `~/.config/skill-config/openapi-schema-creator/skill.properties` for naming conventions and standard error shapes.
-
-Before starting Phase 1, check if `~/.config/skill-config/openapi-schema-creator/` and `skill.properties` exist. If not, create them and notify the user: "Creating configuration directory and default properties file for openapi-schema-creator to store your preferred API naming conventions." Any new property added or saved back to this file MUST be approved by the user beforehand. When loading the file, explicitly report the loaded entries to the user.
-
-### Common Properties
-- `naming_convention`: `snake_case` or `camelCase`.
-- `include_standard_errors`: `true`/`false`.
-
-Before starting Phase 1, check `~/.config/skill-config/openapi-schema-creator/skill.properties` for the preferred naming convention.
-
----
 
 ## Workflow
 
