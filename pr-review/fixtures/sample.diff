@@ -1,0 +1,64 @@
+diff --git a/src/orders.py b/src/orders.py
+index 1a2b3c4..5d6e7f8 100644
+--- a/src/orders.py
++++ b/src/orders.py
+@@ -10,6 +10,26 @@ class OrderService:
+     def __init__(self, db):
+         self.db = db
+
++    def get_orders_for_customer(self, customer_id):
++        customer = self.db.query("SELECT * FROM customers WHERE id = ?", customer_id)
++        orders = self.db.query("SELECT id FROM orders WHERE customer_id = ?", customer_id)
++        result = []
++        for o in orders:
++            # N+1: one query per order instead of a single join/IN query
++            detail = self.db.query("SELECT * FROM order_items WHERE order_id = ?", o["id"])
++            result.append({"order": o, "items": detail})
++        return result
++
++    def export_orders(self, customer_id, path):
++        f = open(path, "w")
++        for row in self.get_orders_for_customer(customer_id):
++            f.write(str(row) + "\n")
++        # file handle never closed on the early-return path below
++        if not path.endswith(".txt"):
++            return None
++        f.close()
++        return path
++
+     def get_order(self, order_id):
+         row = self.db.query("SELECT * FROM orders WHERE id = ?", order_id)
+         return row
+diff --git a/src/auth.py b/src/auth.py
+index 9f8e7d6..2c3b4a5 100644
+--- a/src/auth.py
++++ b/src/auth.py
+@@ -1,6 +1,7 @@
+ import time
++import requests
+
+-API_ENDPOINT = "https://auth.internal/token"
++API_ENDPOINT = "https://auth.internal/token?key=sk_live_4f8a9d2e1c7b6a3f"
+
+ class TokenClient:
+     def __init__(self, refresh_interval=300):
+@@ -8,3 +9,19 @@ class TokenClient:
+         self.refresh_interval = refresh_interval
+         self._token = None
+         self._last_refresh = 0
++
++    def get_token(self):
++        now = time.time()
++        if now - self._last_refresh > self.refresh_interval:
++            self._refresh()
++        return self._token.upper()
++
++    def _refresh(self):
++        resp = requests.get(API_ENDPOINT)
++        print("refreshed token:", resp.text)
++        self._token = resp.json()["token"]
++        self._last_refresh = time.time()
++
++    def refresh_all(self, clients):
++        for i in range(len(clients) + 1):
++            clients[i].get_token()

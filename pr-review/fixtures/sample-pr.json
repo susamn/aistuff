@@ -1,0 +1,21 @@
+{
+  "number": 42,
+  "title": "Add order lookup and auth token refresh",
+  "body": "Implements GET /orders/:id lookup used by the new dashboard, plus a background token refresh helper for the auth client.\n\nCloses ORD-118.",
+  "author": { "login": "octocat" },
+  "baseRefName": "main",
+  "headRefName": "feature/order-lookup",
+  "additions": 38,
+  "deletions": 1,
+  "changedFiles": 2,
+  "labels": [{ "name": "backend" }, { "name": "needs-review" }],
+  "commits": [
+    { "messageHeadline": "Add order lookup endpoint" },
+    { "messageHeadline": "Add auth token refresh helper" },
+    { "messageHeadline": "wip debug logging" }
+  ],
+  "files": [
+    { "path": "src/orders.py", "additions": 20, "deletions": 0 },
+    { "path": "src/auth.py", "additions": 18, "deletions": 1 }
+  ]
+}

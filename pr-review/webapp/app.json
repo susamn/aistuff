@@ -1,0 +1,7 @@
+{
+  "id": "pr-review",
+  "name": "PR Review",
+  "description": "AI-reviewed pull requests — side-by-side diff with inline findings, browsable per review",
+  "version": "1.0.0",
+  "entry": "index.html"
+}
