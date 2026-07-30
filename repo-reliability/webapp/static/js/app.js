@@ -1,5 +1,6 @@
 "use strict";
 let DATA = [];
+let SELECTED = new Set(); // dataset ids currently checked for bulk delete
 const PALETTE = ["#6b7fd7","#5dbb8f","#e0a35c","#d76b6b","#9a6bd7","#5cc2e0","#8a8880"];
 const app = document.getElementById("app");
 const crumb = document.getElementById("crumb");
@@ -146,18 +147,73 @@ function renderVisual(v) {
 
 function bandColor(b) { return `var(--${b === "unknown" ? "unknown" : b})`; }
 
+// Deletes go straight through mosaic's generic per-item route — one file per
+// project (data/<id>.json), matching manifest.json's dataset ids. No write-back
+// to manifest.json (mosaic has no write endpoint, by design); loadData()
+// already skips any manifest entry whose file 404s, so a stale reference left
+// behind by a delete is harmless and self-heals on next full reload.
+async function deleteDataset(id) {
+  const res = await fetch(`data/${id}.json`, { method: "DELETE" });
+  if (!res.ok) throw new Error(`delete failed (${res.status})`);
+}
+
+async function bulkDelete(ids) {
+  const results = await Promise.allSettled(ids.map(deleteDataset));
+  const succeeded = ids.filter((_, i) => results[i].status === "fulfilled");
+  DATA = DATA.filter(b => !succeeded.includes(b._datasetId));
+  succeeded.forEach(id => SELECTED.delete(id));
+  renderProjects();
+  const failed = ids.length - succeeded.length;
+  if (failed) alert(`${failed} of ${ids.length} report(s) could not be deleted.`);
+}
+
 function renderProjects() {
   crumb.textContent = "";
   if (!DATA.length) { app.innerHTML = `<div class="empty">No projects analyzed yet. Run the skill against a repo to populate this report.</div>`; return; }
   app.innerHTML = "";
+
+  if (SELECTED.size) {
+    const bar = document.createElement("div");
+    bar.className = "bulk-bar";
+    bar.innerHTML = `<span class="count">${SELECTED.size} selected</span>
+      <button class="bulk-delete-btn">Delete selected</button>
+      <button class="bulk-clear-btn">Clear</button>`;
+    bar.querySelector(".bulk-clear-btn").onclick = () => { SELECTED.clear(); renderProjects(); };
+    bar.querySelector(".bulk-delete-btn").onclick = () => {
+      const ids = [...SELECTED];
+      if (!confirm(`Delete ${ids.length} project report(s)? This cannot be undone.`)) return;
+      bulkDelete(ids);
+    };
+    app.appendChild(bar);
+  }
+
   DATA.forEach((b, i) => {
     const p = b.project;
     const row = document.createElement("div");
     row.className = "card projrow";
-    row.innerHTML = `<div class="pname">${esc(p.name)}</div>
+    row.innerHTML = `<input type="checkbox" class="sel-box" title="Select for bulk delete" ${SELECTED.has(b._datasetId) ? "checked" : ""}>
+      <div class="pname">${esc(p.name)}</div>
       <div class="pmeta">${p.commits.toLocaleString()} commits · ${p.contributors} contributors · ${p.age_years} yrs</div>
-      <div class="pmeta">analyzed ${esc(p.analyzed_at)}</div>${bandBadge(b.overall_band)}`;
+      <div class="pmeta">analyzed ${esc(p.analyzed_at)}</div>${bandBadge(b.overall_band)}
+      <button class="del-btn" title="Delete this report">&times;</button>`;
     row.onclick = () => { view = { name: "dash", proj: i }; render(); };
+    row.querySelector(".sel-box").onclick = e => {
+      e.stopPropagation();
+      if (e.target.checked) SELECTED.add(b._datasetId); else SELECTED.delete(b._datasetId);
+      renderProjects();
+    };
+    row.querySelector(".del-btn").onclick = async e => {
+      e.stopPropagation();
+      if (!confirm(`Delete the report for "${p.name}"? This cannot be undone.`)) return;
+      try {
+        await deleteDataset(b._datasetId);
+        DATA = DATA.filter(x => x !== b);
+        SELECTED.delete(b._datasetId);
+        renderProjects();
+      } catch (err) {
+        alert(`Could not delete: ${err.message}`);
+      }
+    };
     app.appendChild(row);
   });
 }
@@ -232,7 +288,10 @@ async function loadData() {
   const bundles = await Promise.all((manifest.datasets || []).map(async d => {
     try {
       const r = await fetch(`data/${d.id}.json`);
-      return r.ok ? await r.json() : null;
+      if (!r.ok) return null;
+      const bundle = await r.json();
+      bundle._datasetId = d.id;
+      return bundle;
     } catch (e) { return null; }
   }));
   DATA = bundles.filter(Boolean).sort((a, b) => a.project.name.toLowerCase().localeCompare(b.project.name.toLowerCase()));

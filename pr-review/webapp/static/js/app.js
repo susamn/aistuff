@@ -1,5 +1,6 @@
 "use strict";
 let MANIFEST = { datasets: [] };
+let SELECTED = new Set(); // review ids currently checked for bulk delete
 const app = document.getElementById("app");
 const crumb = document.getElementById("crumb");
 let view = { name: "list" };
@@ -162,6 +163,27 @@ app.addEventListener("click", e => {
 document.addEventListener("click", e => { if (!popup.contains(e.target)) closePopup(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") closePopup(); });
 
+// Deletes go straight through mosaic's generic per-item route — each review
+// is a whole sub-directory (data/<id>/), deleted recursively in one call. No
+// write-back to manifest.json (mosaic has no write endpoint, by design);
+// renderDetail() already shows "Review not found" for a manifest entry whose
+// data 404s, so a stale reference left behind by a delete is harmless and
+// self-heals on next full reload.
+async function deleteReview(id) {
+  const res = await fetch(`data/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error(`delete failed (${res.status})`);
+}
+
+async function bulkDelete(ids) {
+  const results = await Promise.allSettled(ids.map(deleteReview));
+  const succeeded = ids.filter((_, i) => results[i].status === "fulfilled");
+  MANIFEST.datasets = MANIFEST.datasets.filter(d => !succeeded.includes(d.id));
+  succeeded.forEach(id => SELECTED.delete(id));
+  renderList();
+  const failed = ids.length - succeeded.length;
+  if (failed) alert(`${failed} of ${ids.length} review(s) could not be deleted.`);
+}
+
 function renderList() {
   closePopup();
   crumb.textContent = "";
@@ -170,16 +192,51 @@ function renderList() {
     return;
   }
   app.innerHTML = "";
+
+  if (SELECTED.size) {
+    const bar = document.createElement("div");
+    bar.className = "bulk-bar";
+    bar.innerHTML = `<span class="count">${SELECTED.size} selected</span>
+      <button class="bulk-delete-btn">Delete selected</button>
+      <button class="bulk-clear-btn">Clear</button>`;
+    bar.querySelector(".bulk-clear-btn").onclick = () => { SELECTED.clear(); renderList(); };
+    bar.querySelector(".bulk-delete-btn").onclick = () => {
+      const ids = [...SELECTED];
+      if (!confirm(`Delete ${ids.length} review(s)? This cannot be undone.`)) return;
+      bulkDelete(ids);
+    };
+    app.appendChild(bar);
+  }
+
   const rows = [...MANIFEST.datasets].sort((a, b) => (b.updated_at || "").localeCompare(a.updated_at || ""));
   rows.forEach(d => {
     const row = document.createElement("div");
     row.className = "card reviewrow";
     row.innerHTML = `
+      <input type="checkbox" class="sel-box" title="Select for bulk delete" ${SELECTED.has(d.id) ? "checked" : ""}>
       <div class="rtitle">${esc(d.repo)}#${d.pr_number} <span class="rname">${esc(d.title)}</span></div>
       <div class="rmeta">by ${esc(d.author)} · updated ${esc(d.updated_at)}</div>
       <div class="rcounts">${d.must_fix} must-fix · ${d.should_fix} should-fix · ${d.suggestions} suggestion(s)</div>
-      ${badge(statusClass(d.status), d.status)}${d.verdict ? badge(verdictClass(d.verdict), d.verdict) : ""}`;
+      ${badge(statusClass(d.status), d.status)}${d.verdict ? badge(verdictClass(d.verdict), d.verdict) : ""}
+      <button class="del-btn" title="Delete this review">&times;</button>`;
     row.onclick = () => renderDetail(d.id, 1);
+    row.querySelector(".sel-box").onclick = e => {
+      e.stopPropagation();
+      if (e.target.checked) SELECTED.add(d.id); else SELECTED.delete(d.id);
+      renderList();
+    };
+    row.querySelector(".del-btn").onclick = async e => {
+      e.stopPropagation();
+      if (!confirm(`Delete the review for ${d.repo}#${d.pr_number}? This cannot be undone.`)) return;
+      try {
+        await deleteReview(d.id);
+        MANIFEST.datasets = MANIFEST.datasets.filter(x => x.id !== d.id);
+        SELECTED.delete(d.id);
+        renderList();
+      } catch (err) {
+        alert(`Could not delete: ${err.message}`);
+      }
+    };
     app.appendChild(row);
   });
 }
