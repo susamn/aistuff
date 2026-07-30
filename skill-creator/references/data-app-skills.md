@@ -45,7 +45,11 @@ renders it, not a rewrite into a full application.
    fixed structure. That's a recommendation, not a requirement — rendering is
    entirely the skill's own decision: fill a template, build DOM
    programmatically, reach for a small library, whatever fits. Mosaic has no
-   opinion here and never will; it only serves files.
+   opinion here and never will; it only serves files. If the primary view is
+   a manifest-driven list with drill-down, `references/webapp-list-view.md` has
+   a working starting point. If the app is a single-page card board (like
+   Google Keep or Trello notes), `references/webapp-card-board.md` provides a
+   single-canvas starter. Both are optional starting points to copy and adapt.
 4. **Onboard itself** — `mkdir -p` + a symlink into mosaic's staging
    directory (below), not a manual step the user has to remember. Track it
    in `skill.properties`: see "Onboard
@@ -89,6 +93,20 @@ layout makes many skills' `webapp/` folders easier to navigate at a glance.
 Ignore it entirely if a skill's rendering approach doesn't fit it.
 
 No `data/` directory here, and never commit one with real files — see below.
+
+**Every data-app's UI must include a visible link back to mosaic's own
+root dashboard (`/mosaic/`)** — the tile listing of every onboarded app —
+not just this app's own internal "back to list" crumb. A user who drilled
+into a detail view, or landed on the app via a bookmark or reload, should
+never be stuck with only the browser's back button. This is a hard
+requirement, unlike the rendering choices above:
+
+```html
+<a href="/mosaic/" class="home-link">← mosaic</a>
+```
+
+Place it wherever fits the skill's own header — a fixed link near the
+title works for both the list and detail views.
 
 ## The data-home contract (this is the part that's easy to get wrong)
 
@@ -201,13 +219,65 @@ Config).
 
 ## What mosaic guarantees, and doesn't
 
-Two generic routes only — `GET /mosaic/apps/<id>/{path}` (static passthrough)
-and `GET /mosaic/apps/<id>/data/{path}` (data passthrough), both refusing to
-resolve outside the app's own directory. **No per-app backend code, ever** —
-anything dynamic is the app's own client-side JS reading its `data/` files.
-Don't propose adding server-side logic to mosaic for a specific app; if the
-generic contract can't express what's needed, that's a mosaic design
+Three generic routes only, all scoped to one app's own directory and
+refusing to resolve outside it:
+
+- `GET /mosaic/apps/<id>/{path}` — static passthrough.
+- `GET /mosaic/apps/<id>/data/{path}` — data passthrough.
+- `DELETE /mosaic/apps/<id>/data/{path}` — deletes one file, or recursively
+  one sub-directory, under that app's `data/`. Always refuses a target equal
+  to `data/<id>` itself (400) — an app's entire dataset can never be wiped
+  through this route in one call, only individual items within it. See
+  "Deleting data from an app's own UI" below.
+
+**No per-app backend code, ever** — anything dynamic is the app's own
+client-side JS reading (or deleting) its `data/` files through these three
+routes. Don't propose adding server-side logic to mosaic for a specific app;
+if the generic contract can't express what's needed, that's a mosaic design
 conversation, not a workaround in one app.
 
 Mosaic itself is the reference implementation of all of the above, including
 the Playwright pattern named in "How to build one."
+
+## Deleting data from an app's own UI (optional)
+
+Mosaic's own dashboard (the tile listing at `/mosaic/`) never gets delete
+buttons — that stays read-only by design. But an app's **own** frontend is
+free to offer delete UI for its **own** data, backed directly by mosaic's
+generic `DELETE /mosaic/apps/<id>/data/{path}` route from a fixed page like
+any other `fetch()` call:
+
+```js
+async function deleteItem(relPath) {
+  const res = await fetch(`data/${relPath}`, { method: "DELETE" });
+  if (!res.ok) throw new Error(`delete failed: ${res.status}`);
+}
+```
+
+**Bulk delete has no dedicated mosaic endpoint** — mosaic stays at exactly
+three routes. Compose it client-side as several parallel calls to the same
+single-item route:
+
+```js
+async function deleteMany(relPaths) {
+  const results = await Promise.allSettled(relPaths.map(deleteItem));
+  return results.filter((r) => r.status === "rejected"); // whatever failed
+}
+```
+
+The route refuses to remove `data/<id>` itself in one call, so there's no way
+to accidentally wipe a whole app's dataset through this — only the specific
+paths a user selected are ever at risk, and only if the app's own UI sends
+them.
+
+**Recommended, not required:** if a data-app's listing UI is a grid of
+cards (the "one entry per manifest dataset" shape most of these skills
+already have), put each card's delete control in the same place other
+data-app skills use — e.g. a small icon button in a card's top-right corner,
+mirroring where mosaic's own dashboard puts its freshness LED — so a user
+who's used one data-app's delete flow recognizes the next one. This is
+purely a suggestion for cross-skill familiarity, not a contract:
+mosaic has no opinion on rendering (see `webapp/` contract above) and never
+will, so skip this entirely if a skill's card layout doesn't fit it. What's
+actually *in* each card (the data itself) is obviously specific to each app —
+only the delete-control placement convention is shared.

@@ -19,6 +19,8 @@ resources:
   - <SKILL_PATH>/references/script-contract.md
   - <SKILL_PATH>/references/guidance-skills.md
   - <SKILL_PATH>/references/data-app-skills.md
+  - <SKILL_PATH>/references/webapp-list-view.md
+  - <SKILL_PATH>/references/webapp-card-board.md
   - <SKILL_PATH>/prompts/create-data-app-skill.md
   - <SKILL_PATH>/prompts/migrate-to-data-app-skill.md
 tools:
@@ -172,5 +174,7 @@ two sources drift. Detail: `dotfiles-management`.
 | `references/script-contract.md` | any `pipeline` skill — required |
 | `references/guidance-skills.md` | any `guidance` skill; splitting an oversized skill |
 | `references/data-app-skills.md` | skill needs a live mosaic dashboard, not just a report |
+| `references/webapp-list-view.md` | data-app's main view is a manifest-driven list with drill-down |
+| `references/webapp-card-board.md` | data-app is a single-page Trello/Keep-style card board |
 | `prompts/create-data-app-skill.md` | starting prompts for a brand-new data-app skill |
 | `prompts/migrate-to-data-app-skill.md` | reusable template for porting an existing skill onto mosaic |
