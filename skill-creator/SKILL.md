@@ -1,7 +1,7 @@
 ---
 name: skill-creator
 description: Guide for creating effective skills that extend different agents' capabilities. Use when creating new skills or updating existing skills with specialized knowledge, workflows, or tool integrations.
-version: 2.1.0
+version: 2.2.0
 kind: hybrid
 triggers:
   - "create a new skill"
@@ -17,6 +17,7 @@ resources:
   - <SKILL_PATH>/references/frontmatter.md
   - <SKILL_PATH>/references/script-contract.md
   - <SKILL_PATH>/references/guidance-skills.md
+  - <SKILL_PATH>/references/data-app-skills.md
 tools:
   - bash
 created_at: 2026-05-30
@@ -114,8 +115,10 @@ Two counterweights, both real failure modes:
 
 1. **Classify** — pick the `kind`. State it and the reasoning to the user.
 2. **Understand** — gather concrete usage examples. For `pipeline`, name the exact
-   runtime input and the decision its output supports.
-3. **Scaffold** — `<SKILL_PATH>/scripts/scaffold.sh <name> --kind <kind>`
+   runtime input and the decision its output supports. Also ask: does this need
+   a live dashboard on `$TOOLS_PATH/mosaic`, or is a generated report/artifact
+   enough? If yes, it's data-app-backed — `references/data-app-skills.md`.
+3. **Scaffold** — `<SKILL_PATH>/scripts/scaffold.sh <name> --kind <kind> [--webapp]`
 4. **Write** — fill SKILL.md against the budget. Reference skill-local scripts as
    `<SKILL_PATH>/scripts/<script>`; use `$TOOLS_PATH` / `$SCRIPTS_PATH` only for
    genuinely global utilities living outside the skill.
@@ -155,3 +158,4 @@ two sources drift. Detail: `dotfiles-management`.
 | `references/frontmatter.md` | writing frontmatter; the config protocol |
 | `references/script-contract.md` | any `pipeline` skill — required |
 | `references/guidance-skills.md` | any `guidance` skill; splitting an oversized skill |
+| `references/data-app-skills.md` | skill needs a live mosaic dashboard, not just a report |
