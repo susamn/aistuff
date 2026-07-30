@@ -219,6 +219,20 @@ EOF
 esac
 
 if [[ "$WEBAPP" -eq 1 ]]; then
+  cat >> "$DEST/SKILL.md" <<EOF
+
+## Steady state, once onboarded to mosaic
+
+Once \`webapp/\` is onboarded (symlinked into mosaic's staging directory,
+tracked by \`mosaic_onboarded\` in this skill's config), routine invocations
+of this skill are data-producing runs only — they execute the generation
+script, which writes new/updated data to \`~/.local/share/mosaic/data/$NAME/\`;
+mosaic serves it automatically, no separate publish step. Modifying
+\`webapp/app.json\`, \`webapp/static/\`, the onboarding symlink, or this
+script's own logic is a distinct action, done only when the user explicitly
+asks for it — never as a side effect of a routine run.
+EOF
+
   mkdir -p "$DEST/webapp/static/js" "$DEST/webapp/static/css"
   cat > "$DEST/webapp/app.json" <<EOF
 {

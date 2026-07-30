@@ -52,6 +52,12 @@ dashboard? Don't assume — ask.
   isn't installed; commit locally and hand off the push command.
 - skills/ is a git submodule of dotfiles — commit changes there, but don't
   bump the dotfiles pointer unless explicitly asked.
+- Add a "Steady state, once onboarded to mosaic" section to <skill-name>'s
+  own SKILL.md (scaffold.sh writes this automatically for brand-new skills;
+  a migration has to add it by hand — see data-app-skills.md's "Steady-state"
+  section for the exact wording to adapt). This is what tells a future agent
+  invoking <skill-name> that routine runs are data-producing only, and that
+  touching webapp/ or the generation script's logic requires an explicit ask.
 - Run skill-manager's audit.sh against <skill-name> before calling it done.
 ```
 

@@ -21,3 +21,9 @@ generation script writes straight to `~/.local/share/mosaic/data/<name>/`,
 `webapp/` renders it (any way the skill wants — no shared renderer, no
 enforced layout), onboard with `mkdir -p ~/.local/share/mosaic/apps && ln -sfn
 <skill-path>/webapp ~/.local/share/mosaic/apps/<name>`.
+
+The scaffold already appends a "Steady state, once onboarded to mosaic"
+section to the new skill's own `SKILL.md` — leave it in place. It's what
+tells a future agent invoking this skill that routine runs are data-producing
+only, and that touching `webapp/` or the generation script's logic is a
+separate, explicitly-requested action.
