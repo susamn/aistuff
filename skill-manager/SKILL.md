@@ -1,7 +1,7 @@
 ---
 name: skill-manager
 description: Audit and standardize agent skills against the authoring contract — frontmatter validity, progressive-disclosure budgets, script/prose boundary, resource resolution, and registration/enabled-state consistency. Use when auditing skills, checking skill compliance, or standardizing a skill.
-version: 2.0.0
+version: 2.1.0
 kind: pipeline
 triggers:
   - "audit my skills"
@@ -67,10 +67,12 @@ plus the file path is the handle; opening all twenty files defeats the purpose.
 | `enabled` | table `Enabled` cell disagrees with the `.disabled` directory suffix |
 | `config` | describes `skill.properties` while declaring no `config_dir` |
 | `scripts` | a shell script that is not executable |
+| `data-app` | skill has `webapp/app.json` (mosaic-backed): malformed manifest, `id` not kebab-case or not equal to the skill name (mosaic's symlink is named from `id`), missing entry file, a populated (uncommitted) `webapp/data/`, no script writing to `~/.local/share/mosaic/data`, or `do-stow`/`do-unstow` mentioned for onboarding |
 
 The full authoring contract these enforce lives in `skill-creator`:
-`references/frontmatter.md`, `references/script-contract.md`, and
-`references/guidance-skills.md`. Consult those when a fix is not obvious.
+`references/frontmatter.md`, `references/script-contract.md`,
+`references/guidance-skills.md`, and `references/data-app-skills.md`.
+Consult those when a fix is not obvious.
 
 ## Adding a check
 

@@ -4,6 +4,7 @@
 stdout: findings, one per line (data only)   stderr: diagnostics
 exit 0 = clean · 1 = errors found · 2 = cannot run
 """
+import json
 import os
 import re
 import sys
@@ -236,6 +237,49 @@ def audit(skill_dir, name, disabled, table):
     for literal, var in ENV_LITERALS.items():
         if literal in body:
             add("WARN", name, "conventions", f"'{literal}' in prose — use {var}")
+
+    # ── data-app skills (mosaic) ─────────────────────────────────────────────
+    webapp_dir = os.path.join(skill_dir, "webapp")
+    app_json = os.path.join(webapp_dir, "app.json")
+    if os.path.isfile(app_json):
+        try:
+            meta = json.loads(open(app_json, encoding="utf-8").read())
+        except (OSError, ValueError) as e:
+            add("ERR", name, "data-app", f"webapp/app.json invalid JSON: {e}")
+            meta = {}
+        for field in ("id", "name", "version", "entry"):
+            if not meta.get(field):
+                add("ERR", name, "data-app", f"webapp/app.json missing field: {field}")
+        app_id = meta.get("id")
+        if app_id and not re.match(r"^[a-z0-9][a-z0-9-]*$", app_id):
+            add("ERR", name, "data-app", f"webapp/app.json id '{app_id}' must be kebab-case")
+        if app_id and app_id != name:
+            add("ERR", name, "data-app",
+                f"webapp/app.json id '{app_id}' != skill name '{name}' — the mosaic "
+                "symlink name is derived from id, so this chain must match exactly")
+        entry = meta.get("entry", "index.html")
+        if not os.path.isfile(os.path.join(webapp_dir, "static", entry)):
+            add("ERR", name, "data-app", f"entry '{entry}' not found under webapp/static/")
+
+        data_dir = os.path.join(webapp_dir, "data")
+        if os.path.isdir(data_dir) and not os.path.islink(data_dir) and os.listdir(data_dir):
+            add("ERR", name, "data-app",
+                "webapp/data is a populated real directory — data belongs in mosaic's "
+                "centralized ~/.local/share/mosaic/data/<id>, not committed here")
+
+        scripts_blob = "".join(
+            open(s, encoding="utf-8", errors="ignore").read()
+            for s in scripts if os.path.isfile(s)
+        )
+        if ".local/share/mosaic" not in scripts_blob:
+            add("WARN", name, "data-app",
+                "no script references ~/.local/share/mosaic/data — confirm the "
+                "generation script writes there directly (skill-creator/references/data-app-skills.md)")
+
+        if re.search(r"do-(un)?stow", body):
+            add("ERR", name, "data-app",
+                "do-stow/do-unstow must never be involved in onboarding a data-app "
+                "skill — use mosaic's own scripts/onboard.sh")
 
     # ── registration & enabled-state ─────────────────────────────────────────
     if name not in table:
