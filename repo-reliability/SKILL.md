@@ -99,6 +99,19 @@ The bundle carries every pointer's `detail.visuals` — scatter sets up to 300
 points each. Open it only to investigate a specific line that looks wrong; the
 handle on the last line is how you get there.
 
+## Steady state, once onboarded to mosaic
+
+`mosaic_onboarded=true` is already set
+(`~/.config/skill-config/repo-reliability/skill.properties`). Routine
+invocations of `run-report.sh` from here on are data-producing runs only:
+they write project bundles to
+`~/.local/share/mosaic/data/repo-reliability/`, and mosaic serves it
+automatically — no separate publish step. Modifying `webapp/app.json`,
+`webapp/static/`, the onboarding symlink, or the pointer/runner scripts'
+own logic (including adding a new pointer, below) is a distinct action,
+done only when the user explicitly asks for it — never as a side effect of
+analyzing a repo.
+
 ## Adding a new pointer
 
 Ongoing process — pointers are meant to accumulate. The contract:
