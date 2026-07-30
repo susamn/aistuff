@@ -5,15 +5,17 @@
 set -euo pipefail
 
 SKILLS_DIR="${SKILLS_DIR:-$HOME/dotfiles/skills}"
-NAME=""; KIND=""
+NAME=""; KIND=""; WEBAPP=0
 
 die()  { echo "error: $*" >&2; exit "${2:-1}"; }
 usage() {
   cat >&2 <<'EOF'
-usage: scaffold.sh <name> --kind <guidance|pipeline|hybrid> [--skills-dir DIR]
+usage: scaffold.sh <name> --kind <guidance|pipeline|hybrid> [--webapp] [--skills-dir DIR]
 
-  <name>   kebab-case, becomes the directory and the frontmatter `name`
-  --kind   see skill-creator SKILL.md Step 0 — decides the generated shape
+  <name>     kebab-case, becomes the directory and the frontmatter `name`
+  --kind     see skill-creator SKILL.md Step 0 — decides the generated shape
+  --webapp   add a webapp/ skeleton for a mosaic dashboard tile — see
+             references/data-app-skills.md. guidance skills can't take it.
 EOF
   exit 1
 }
@@ -24,10 +26,12 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --kind)       KIND="${2:-}"; shift 2 ;;
     --skills-dir) SKILLS_DIR="${2:-}"; shift 2 ;;
+    --webapp)     WEBAPP=1; shift ;;
     -h|--help)    usage ;;
     *)            die "unknown argument: $1" ;;
   esac
 done
+[[ "$WEBAPP" -eq 1 && "$KIND" == "guidance" ]] && die "--webapp needs real output data — not valid with --kind guidance"
 
 [[ "$NAME" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]] || die "name must be kebab-case: '$NAME'"
 case "$KIND" in
@@ -214,6 +218,46 @@ EOF
     ;;
 esac
 
+if [[ "$WEBAPP" -eq 1 ]]; then
+  mkdir -p "$DEST/webapp/static/js" "$DEST/webapp/static/css"
+  cat > "$DEST/webapp/app.json" <<EOF
+{
+  "id": "$NAME",
+  "name": "TODO Human name",
+  "description": "TODO one line, shown on the mosaic dashboard tile",
+  "version": "0.1.0",
+  "entry": "index.html"
+}
+EOF
+  cat > "$DEST/webapp/static/index.html" <<'EOF'
+<!DOCTYPE html>
+<html>
+<head>
+<title>TODO</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<h1>TODO</h1>
+<script src="js/app.js"></script>
+</body>
+</html>
+EOF
+  cat > "$DEST/webapp/static/js/app.js" <<'EOF'
+// Sub-paths under data/ are entirely up to this app. The generation script
+// must write to ~/.local/share/mosaic/data/<id>/, creating it if missing —
+// never assume mosaic or onboard.sh has run. See
+// skill-creator/references/data-app-skills.md.
+fetch("data/manifest.json").then((r) => r.json()).then((d) => {
+  // TODO render into index.html's structure — fill the template, don't
+  // build up an HTML string here.
+  console.log(d);
+});
+EOF
+  cat > "$DEST/webapp/static/css/style.css" <<'EOF'
+/* TODO */
+EOF
+fi
+
 echo "$DEST"
 find "$DEST" -type f | sort | sed "s|^$DEST/|  |"
 
@@ -225,3 +269,10 @@ next:
   3. bash ~/dotfiles/do-stow.sh
   4. $SKILLS_DIR/skill-manager/scripts/audit.sh $NAME
 EOF
+if [[ "$WEBAPP" -eq 1 ]]; then
+  cat >&2 <<EOF
+  5. fill webapp/app.json + webapp/static/{index.html,js/app.js,css/style.css}
+  6. write your generation script directly to ~/.local/share/mosaic/data/$NAME/
+  7. \$TOOLS_PATH/mosaic/scripts/onboard.sh $DEST/webapp   (never do-stow/do-unstow)
+EOF
+fi
