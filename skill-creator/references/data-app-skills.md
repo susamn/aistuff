@@ -54,7 +54,14 @@ renders it, not a rewrite into a full application.
    directory (below), not a manual step the user has to remember. Track it
    in `skill.properties`: see "Onboard
    itself, and track it" below.
-5. Optional: a Playwright suite against the onboarded app — mosaic's own
+5. **State the steady-state boundary in the skill's own `SKILL.md`** — not
+   just here. Once onboarded, an agent invoking *that* skill later may never
+   have loaded `skill-creator` or this reference in the same session, so the
+   rule has to live where that agent will actually see it: the new/migrated
+   skill's own `SKILL.md`. `scaffold.sh --webapp` writes this automatically;
+   for a migration, add it by hand — see "Steady-state" below for the exact
+   wording to adapt.
+6. Optional: a Playwright suite against the onboarded app — mosaic's own
    test suite is the pattern to follow (fixture app copied to a temp dir per
    run, onboard → assert → unboard).
 
@@ -216,6 +223,55 @@ overwrites cleanly), but there's no need to. This is a normal
 new key with the user before writing it, and comment the line so a future
 read of the file explains itself (see `references/house-conventions.md` §
 Config).
+
+## Steady-state: once onboarded, routine runs produce data, nothing else
+
+`mosaic_onboarded=true` marks a boundary, not just a checkbox. Before it,
+building the skill means shaping its generation script, its `webapp/`, and
+its data contract together. After it, that construction phase is over —
+**every ordinary invocation of the skill from here on is a data-producing
+run: it executes the generation script, which writes new/updated data under
+`~/.local/share/mosaic/data/<id>/`, and that's the entire scope of the
+action.** Mosaic picks it up automatically because it only serves files from
+that path — there is no separate "publish" or "sync" step to perform, and
+none should be invented.
+
+**Do not treat a routine run as an invitation to touch `webapp/app.json`,
+`webapp/static/`, the onboarding symlink, or the generation script's own
+logic.** Those are the construction-phase artifacts this whole reference is
+about, and once onboarded they are stable by default — changing any of them
+is a distinct action, separate from "run the skill," and requires the user
+to explicitly ask for it (e.g. "update the dashboard to also show X," "the
+generation script should compute Y differently now," "bump the webapp
+version"). Absent that explicit ask, a routine run's blast radius stops at
+new data files; the code paths that produced them and the code that renders
+them are out of scope.
+
+**This has to be stated in the skill's own `SKILL.md`, not only here** — see
+step 5 of "How to build one" above. `scaffold.sh --webapp` writes it
+automatically; adapt this wording by hand when migrating an existing skill:
+
+```markdown
+## Steady state, once onboarded to mosaic
+
+Once `webapp/` is onboarded (symlinked into mosaic's staging directory,
+tracked by `mosaic_onboarded` in this skill's config), routine invocations
+of this skill are data-producing runs only — they execute the generation
+script, which writes new/updated data to `~/.local/share/mosaic/data/<id>/`;
+mosaic serves it automatically, no separate publish step. Modifying
+`webapp/app.json`, `webapp/static/`, the onboarding symlink, or this
+script's own logic is a distinct action, done only when the user explicitly
+asks for it — never as a side effect of a routine run.
+```
+
+This mirrors the migration/build guidance already given for the generation
+script itself ("How to build one" above, and the migration prompt template:
+"the generation logic never needs to change — only where its output lands
+and how it's shown") — the same boundary applies for the lifetime of the
+skill, not just at migration time. If a routine run surfaces something that
+looks like it *should* change the skill or its dashboard (a bug in the
+rendering, a new field worth tracking), surface that as a suggestion or
+question, don't fold it into the data-producing run silently.
 
 ## What mosaic guarantees, and doesn't
 
