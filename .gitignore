@@ -1,1 +1,6 @@
 __pycache__/
+
+# data-app skills: webapp/data is a symlink to mosaic's centralized data
+# home, created by each skill's own self-onboarding step — machine-local,
+# never committed. See skill-creator/references/data-app-skills.md.
+*/webapp/data

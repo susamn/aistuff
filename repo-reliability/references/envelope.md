@@ -82,5 +82,6 @@ Thresholds live in `pointer.json`, never in code:
   "pointers": [ envelope, envelope, ... ] }
 ```
 
-The template receives a JSON array of these bundles inlined at the
-`__RR_DATA_JSON__` placeholder.
+The webapp's own JS fetches `data/manifest.json` to discover which of these
+bundles exist, then `data/<slug>.json` for each — see
+`skill-creator/references/data-app-skills.md` for the data-home contract.

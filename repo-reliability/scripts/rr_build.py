@@ -1,10 +1,11 @@
-"""Runner helpers: validate envelopes, collect repo metadata, bundle, stamp report.
+"""Runner helpers: validate envelopes, collect repo metadata, bundle, manifest.
 
 Usage:
   rr_build.py validate <envelope.json>
   rr_build.py meta <repo_dir>
   rr_build.py bundle <meta.json> <out.json> <envelope.json>...
-  rr_build.py stamp <template.html> <data_dir> <out.html>
+  rr_build.py summary <bundle.json>
+  rr_build.py manifest <data_dir>
 """
 import glob
 import json
@@ -17,6 +18,7 @@ from datetime import datetime, timezone
 BANDS = {"healthy", "warning", "critical", "unknown"}
 VISUALS = {"histogram", "line", "scatter", "stacked-bar", "table", "checklist"}
 BAND_RANK = {"unknown": 0, "healthy": 1, "warning": 2, "critical": 3}
+BUNDLE_SCHEMA = 1  # shape of the per-project bundle JSON the webapp reads
 
 
 def validate(path):
@@ -120,20 +122,29 @@ def summary(bundle_path):
     print(f"<artifact>: {os.path.abspath(bundle_path)}")
 
 
-def stamp(template_path, data_dir, out_path):
-    with open(template_path) as f:
-        tpl = f.read()
-    projects = []
+def manifest(data_dir):
+    """Rebuild data_dir/manifest.json from the project bundles it contains.
+
+    mosaic's data-home contract: the webapp's own JS fetches this to know
+    which bundles exist and their schema_version, so it can gray out data an
+    older/newer webapp/ can't read. mosaic itself never interprets this file.
+    """
+    datasets = []
     for p in sorted(glob.glob(os.path.join(data_dir, "*.json"))):
+        if os.path.basename(p) == "manifest.json":
+            continue
         with open(p) as f:
-            projects.append(json.load(f))
-    projects.sort(key=lambda b: b["project"]["name"].lower())
-    blob = json.dumps(projects).replace("</", "<\\/")
-    if "__RR_DATA_JSON__" not in tpl:
-        sys.exit("template is missing the __RR_DATA_JSON__ placeholder")
+            b = json.load(f)
+        datasets.append({
+            "id": b["project"]["slug"],
+            "generated_at": b["project"]["analyzed_at"],
+            "schema_version": BUNDLE_SCHEMA,
+            "tier": "hot",
+        })
+    out_path = os.path.join(data_dir, "manifest.json")
     with open(out_path, "w") as f:
-        f.write(tpl.replace("__RR_DATA_JSON__", blob))
-    print(f"{out_path} ({len(projects)} project(s))")
+        json.dump({"datasets": datasets}, f, indent=1)
+    print(f"{out_path} ({len(datasets)} dataset(s))")
 
 
 if __name__ == "__main__":
@@ -149,7 +160,7 @@ if __name__ == "__main__":
         bundle(sys.argv[2], sys.argv[3], sys.argv[4:])
     elif cmd == "summary":
         summary(sys.argv[2])
-    elif cmd == "stamp":
-        stamp(sys.argv[2], sys.argv[3], sys.argv[4])
+    elif cmd == "manifest":
+        manifest(sys.argv[2])
     else:
         sys.exit(__doc__)
