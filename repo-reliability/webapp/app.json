@@ -1,0 +1,7 @@
+{
+  "id": "repo-reliability",
+  "name": "Repo Reliability",
+  "description": "Development-process health across analyzed repositories — commit patterns, churn, contributor concentration, PR/issue flow",
+  "version": "1.0.0",
+  "entry": "index.html"
+}

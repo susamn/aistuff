@@ -1,7 +1,8 @@
 ---
 name: repo-reliability
-description: Analyze a git repository's development-process health and fragility — commit patterns, code churn, contributor concentration, PR flow vs review depth, issue responsiveness — via extensible per-pointer scripts that emit JSON envelopes, aggregated into a persistent multi-project self-contained HTML report. Use when asked to assess a repo's reliability, maturity, commit/PR patterns, or how fragile a project is.
-version: 1.0.0
+description: Analyze a git repository's development-process health and fragility — commit patterns, code churn, contributor concentration, PR flow vs review depth, issue responsiveness — via extensible per-pointer scripts that emit JSON envelopes, aggregated into a persistent multi-project dashboard on mosaic. Use when asked to assess a repo's reliability, maturity, commit/PR patterns, or how fragile a project is.
+version: 3.0.0
+kind: pipeline
 triggers:
   - "analyze this repo"
   - "repo reliability report"
@@ -11,18 +12,17 @@ triggers:
 intent: analysis
 config_dir: ~/.config/skill-config/repo-reliability
 created_at: 2026-07-28
-updated_at: 2026-07-28
+updated_at: 2026-07-30
 guardrails:
   - Read-only against the analyzed repository — never modify, commit, or push to it
-  - The report is a local file; do not publish or upload it without explicit user consent
   - Forge (GitHub) pointers need an authenticated gh CLI; when unavailable, skip them gracefully and still deliver the git-only report — never block on forge access
   - Metrics measure process health, a proxy for reliability — present bands with their evidence, never as verdicts on code quality
 resources:
-  - ./scripts/run-report.sh
-  - ./scripts/rr_build.py
-  - ./scripts/rr_common.py
-  - ./template/report.html
-  - ./references/envelope.md
+  - <SKILL_PATH>/scripts/run-report.sh
+  - <SKILL_PATH>/scripts/rr_build.py
+  - <SKILL_PATH>/scripts/rr_common.py
+  - <SKILL_PATH>/webapp/app.json
+  - <SKILL_PATH>/references/envelope.md
 tools:
   - bash
   - git
@@ -36,19 +36,25 @@ tools:
 Runs every pointer under `pointers/` against a repo. Each pointer is a
 self-contained folder (`pointer.json` definition + `run.sh` script) that emits
 one JSON envelope (schema: `references/envelope.md`). The runner stores one
-bundle per project in a persistent data home and re-stamps a single
-self-contained `report.html` containing **all** analyzed projects: a project
-list, per-project card dashboard, and click-through detail visuals per card.
+bundle per project in mosaic's centralized data home and refreshes a
+manifest; `webapp/` is a mosaic dashboard tile (data-app-backed skill, see
+`skill-creator/references/data-app-skills.md`) rendering **all** analyzed
+projects: a project list, per-project card dashboard, and click-through
+detail visuals per card.
 
 ## Configuration
 
 `~/.config/skill-config/repo-reliability/skill.properties` — created with
 defaults on first run; report loaded values to the user:
 
-- `data_home` (default `~/.local/share/repo-reliability`) — per-project JSONs in
-  `data/`, stamped `report.html`, and clones of URL-analyzed repos in `clones/`
+- `data_home` (default `~/.local/share/repo-reliability`) — clones of
+  URL-analyzed repos, in `clones/`. Project bundles and the manifest the
+  webapp reads live in mosaic's own data home instead
+  (`~/.local/share/mosaic/data/repo-reliability/`), not here.
 - `window_months` (default 12) — analysis window for time-boxed pointers
 - `forge_pr_limit` / `forge_issue_limit` (default 300) — API fetch caps
+- `mosaic_onboarded` — internal flag set once the webapp has been symlinked
+  into mosaic's staging dirs; not user-tunable
 
 Do not add new properties without explicit user approval.
 
@@ -58,18 +64,40 @@ Do not add new properties without explicit user approval.
    into `<data_home>/clones/`). Rerunning on the same remote replaces that
    project's stored JSON — project identity is keyed on the remote URL.
 2. Run: `<SKILL_PATH>/scripts/run-report.sh --repo <path-or-url>`
-   Useful flags: `--months N`, `--no-forge`, `--render-only` (rebuild report
-   from stored data without analyzing), `--open`.
-3. The runner prints the data file and report path (default
-   `~/.local/share/repo-reliability/report.html`). Relay both to the user.
-4. Deliver: locally, open it (`xdg-open`) or hand over the path. In a remote
-   or cloud session, the file cannot be double-clicked — publish the stamped
-   `report.html` as an artifact if the environment supports it, otherwise tell
-   the user where the file is and how to retrieve it. The report is fully
-   self-contained (data inlined), so the single file is safe to move anywhere.
-5. Summarize the result in chat: overall band, the worst pointers with their
-   evidence lines, and any pointers skipped (e.g. no forge access) — never
-   present a band without its evidence.
+   Useful flags: `--months N`, `--no-forge`, `--render-only` (rebuild
+   `manifest.json` from stored data without analyzing), `--open`.
+3. The runner onboards itself into mosaic on first run (idempotent after)
+   and prints the project's data file plus the dashboard URL
+   (`http://localhost:<mosaic-port>/mosaic/apps/repo-reliability/`, default
+   port 47500). Relay both to the user.
+4. Deliver: tell the user to start mosaic if it isn't already running
+   (`$TOOLS_PATH/mosaic/quick-start.sh start`) then open the dashboard URL.
+   `--open` does this automatically via `xdg-open`. There is no standalone
+   report file to hand over — mosaic is the only rendering surface.
+5. Read the digest — **never open the bundle to summarize it**:
+
+   ```bash
+   python3 <SKILL_PATH>/scripts/rr_build.py summary <data-file>
+   ```
+
+   Relay those lines: overall band, worst pointers first with their evidence, and
+   any skipped (e.g. no forge access). Never present a band without its evidence.
+
+## Output
+
+`summary` emits a project header, one line per pointer sorted worst-first, and
+the artifact path as the last line:
+
+```
+demo	overall=critical	412 commits	3 contributors
+contributor-concentration  critical  1 bus factor      a4f21c9
+commit-size-discipline     warning   18.2 % >1000 LOC  PR #412
+<artifact>: /home/user/.local/share/mosaic/data/repo-reliability/demo.json
+```
+
+The bundle carries every pointer's `detail.visuals` — scatter sets up to 300
+points each. Open it only to investigate a specific line that looks wrong; the
+handle on the last line is how you get there.
 
 ## Adding a new pointer
 
@@ -86,7 +114,8 @@ Ongoing process — pointers are meant to accumulate. The contract:
    `emit_unavailable`). Read `references/envelope.md` before writing.
 4. Hard rule: detail visuals only from the closed vocabulary — `histogram`,
    `line`, `scatter`, `stacked-bar`, `table`, `checklist`. A pointer needing a
-   new chart type is a template change first, discussed with the user.
+   new chart type is a `webapp/static/js/app.js` change first, discussed with
+   the user.
 5. Verify: `<SKILL_PATH>/scripts/run-report.sh --validate <SKILL_PATH>/pointers/<new-id> --repo <some-repo>`
    then a full run to confirm the card renders and expands.
 6. Reference implementations: `commit-size-discipline` (git source),

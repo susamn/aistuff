@@ -1,92 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Repo reliability report</title>
-<style>
-:root {
-  --bg: #f5f4f0; --card: #ffffff; --ink: #1c1c1a; --muted: #6b6a64;
-  --line: #e2e0d8; --accent: #4f5d95;
-  --healthy: #2e8f63; --healthy-bg: #e2f2ea;
-  --warning: #b07c1e; --warning-bg: #f8eed7;
-  --critical: #bb4444; --critical-bg: #f9e4e4;
-  --unknown: #8a8880; --unknown-bg: #eceae3;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #191917; --card: #232320; --ink: #e8e6df; --muted: #a09e95;
-    --line: #3a3934; --accent: #93a1d8;
-    --healthy: #5cc498; --healthy-bg: #1e3a2d;
-    --warning: #ddaf54; --warning-bg: #3d3321;
-    --critical: #e07a7a; --critical-bg: #422323;
-    --unknown: #94928a; --unknown-bg: #2e2d29;
-  }
-}
-* { box-sizing: border-box; margin: 0; }
-body { background: var(--bg); color: var(--ink); font: 15px/1.55 system-ui, sans-serif; padding: 24px; }
-.wrap { max-width: 1060px; margin: 0 auto; }
-header { display: flex; align-items: baseline; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; }
-h1 { font-size: 21px; font-weight: 600; }
-h1 span { color: var(--muted); font-weight: 400; }
-.crumb { color: var(--muted); font-size: 14px; cursor: pointer; }
-.crumb:hover { color: var(--accent); }
-.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
-.badge { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px; }
-.b-healthy  { color: var(--healthy);  background: var(--healthy-bg); }
-.b-warning  { color: var(--warning);  background: var(--warning-bg); }
-.b-critical { color: var(--critical); background: var(--critical-bg); }
-.b-unknown  { color: var(--unknown);  background: var(--unknown-bg); }
-.projrow { display: flex; align-items: center; gap: 16px; cursor: pointer; margin-bottom: 10px; transition: border-color .15s; flex-wrap: wrap; }
-.projrow:hover { border-color: var(--accent); }
-.projrow .pname { font-weight: 600; font-size: 16px; flex: 1 1 220px; overflow-wrap: anywhere; }
-.projrow .pmeta { color: var(--muted); font-size: 13px; }
-.phead { margin-bottom: 14px; }
-.phead .remote { color: var(--muted); font-family: ui-monospace, monospace; font-size: 13px; word-break: break-all; }
-.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-.chip { font-size: 12px; color: var(--muted); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
-.pcard { cursor: pointer; transition: border-color .15s, transform .15s; display: flex; flex-direction: column; gap: 8px; }
-.pcard:hover { border-color: var(--accent); transform: translateY(-1px); }
-.pcard .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.pcard .pname { font-size: 13px; color: var(--muted); }
-.pcard .val { font-size: 26px; font-weight: 650; }
-.pcard .val small { font-size: 12px; font-weight: 400; color: var(--muted); margin-left: 6px; }
-.pcard .ev { font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 8px; margin-top: auto; }
-.overlay { position: fixed; inset: 0; background: rgba(10,10,8,.55); display: flex; justify-content: center; align-items: flex-start; padding: 4vh 16px; overflow: auto; z-index: 10; }
-.panel { background: var(--card); border-radius: 12px; max-width: 860px; width: 100%; padding: 24px 28px; border: 1px solid var(--line); }
-.panel h2 { font-size: 18px; margin-bottom: 4px; display: flex; align-items: center; gap: 12px; }
-.panel .sub { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
-.panel .narrative { font-size: 14px; margin-bottom: 18px; color: var(--ink); }
-.vis { margin-bottom: 22px; }
-.vis h3 { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--muted); }
-.vis svg { max-width: 100%; height: auto; display: block; }
-table { border-collapse: collapse; width: 100%; font-size: 13px; }
-th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); }
-th { color: var(--muted); font-weight: 600; }
-td.num { text-align: right; font-variant-numeric: tabular-nums; }
-.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 6px; }
-.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; }
-.close { float: right; cursor: pointer; color: var(--muted); font-size: 22px; line-height: 1; }
-.close:hover { color: var(--ink); }
-.empty { text-align: center; color: var(--muted); padding: 60px 0; }
-.mini { height: 42px; display: flex; align-items: flex-end; gap: 2px; }
-.mini div { flex: 1; border-radius: 2px 2px 0 0; min-height: 2px; }
-.conf { font-size: 11px; color: var(--muted); }
-</style>
-</head>
-<body>
-<div class="wrap">
-  <header>
-    <h1>Repo reliability <span>· process-health report</span></h1>
-    <div class="crumb" id="crumb"></div>
-  </header>
-  <main id="app"></main>
-</div>
-<script id="rr-data" type="application/json">__RR_DATA_JSON__</script>
-<script>
 "use strict";
-const DATA = JSON.parse(document.getElementById("rr-data").textContent || "[]");
+let DATA = [];
+let SELECTED = new Set(); // dataset ids currently checked for bulk delete
 const PALETTE = ["#6b7fd7","#5dbb8f","#e0a35c","#d76b6b","#9a6bd7","#5cc2e0","#8a8880"];
 const app = document.getElementById("app");
 const crumb = document.getElementById("crumb");
@@ -233,18 +147,73 @@ function renderVisual(v) {
 
 function bandColor(b) { return `var(--${b === "unknown" ? "unknown" : b})`; }
 
+// Deletes go straight through mosaic's generic per-item route — one file per
+// project (data/<id>.json), matching manifest.json's dataset ids. No write-back
+// to manifest.json (mosaic has no write endpoint, by design); loadData()
+// already skips any manifest entry whose file 404s, so a stale reference left
+// behind by a delete is harmless and self-heals on next full reload.
+async function deleteDataset(id) {
+  const res = await fetch(`data/${id}.json`, { method: "DELETE" });
+  if (!res.ok) throw new Error(`delete failed (${res.status})`);
+}
+
+async function bulkDelete(ids) {
+  const results = await Promise.allSettled(ids.map(deleteDataset));
+  const succeeded = ids.filter((_, i) => results[i].status === "fulfilled");
+  DATA = DATA.filter(b => !succeeded.includes(b._datasetId));
+  succeeded.forEach(id => SELECTED.delete(id));
+  renderProjects();
+  const failed = ids.length - succeeded.length;
+  if (failed) alert(`${failed} of ${ids.length} report(s) could not be deleted.`);
+}
+
 function renderProjects() {
   crumb.textContent = "";
   if (!DATA.length) { app.innerHTML = `<div class="empty">No projects analyzed yet. Run the skill against a repo to populate this report.</div>`; return; }
   app.innerHTML = "";
+
+  if (SELECTED.size) {
+    const bar = document.createElement("div");
+    bar.className = "bulk-bar";
+    bar.innerHTML = `<span class="count">${SELECTED.size} selected</span>
+      <button class="bulk-delete-btn">Delete selected</button>
+      <button class="bulk-clear-btn">Clear</button>`;
+    bar.querySelector(".bulk-clear-btn").onclick = () => { SELECTED.clear(); renderProjects(); };
+    bar.querySelector(".bulk-delete-btn").onclick = () => {
+      const ids = [...SELECTED];
+      if (!confirm(`Delete ${ids.length} project report(s)? This cannot be undone.`)) return;
+      bulkDelete(ids);
+    };
+    app.appendChild(bar);
+  }
+
   DATA.forEach((b, i) => {
     const p = b.project;
     const row = document.createElement("div");
     row.className = "card projrow";
-    row.innerHTML = `<div class="pname">${esc(p.name)}</div>
+    row.innerHTML = `<input type="checkbox" class="sel-box" title="Select for bulk delete" ${SELECTED.has(b._datasetId) ? "checked" : ""}>
+      <div class="pname">${esc(p.name)}</div>
       <div class="pmeta">${p.commits.toLocaleString()} commits · ${p.contributors} contributors · ${p.age_years} yrs</div>
-      <div class="pmeta">analyzed ${esc(p.analyzed_at)}</div>${bandBadge(b.overall_band)}`;
+      <div class="pmeta">analyzed ${esc(p.analyzed_at)}</div>${bandBadge(b.overall_band)}
+      <button class="del-btn" title="Delete this report">&times;</button>`;
     row.onclick = () => { view = { name: "dash", proj: i }; render(); };
+    row.querySelector(".sel-box").onclick = e => {
+      e.stopPropagation();
+      if (e.target.checked) SELECTED.add(b._datasetId); else SELECTED.delete(b._datasetId);
+      renderProjects();
+    };
+    row.querySelector(".del-btn").onclick = async e => {
+      e.stopPropagation();
+      if (!confirm(`Delete the report for "${p.name}"? This cannot be undone.`)) return;
+      try {
+        await deleteDataset(b._datasetId);
+        DATA = DATA.filter(x => x !== b);
+        SELECTED.delete(b._datasetId);
+        renderProjects();
+      } catch (err) {
+        alert(`Could not delete: ${err.message}`);
+      }
+    };
     app.appendChild(row);
   });
 }
@@ -309,7 +278,23 @@ function openDetail(pt) {
 
 function render() { view.name === "projects" ? renderProjects() : renderDash(); }
 document.addEventListener("keydown", e => { if (e.key === "Escape") document.querySelector(".overlay")?.remove(); });
-render();
-</script>
-</body>
-</html>
+
+async function loadData() {
+  let manifest = { datasets: [] };
+  try {
+    const r = await fetch("data/manifest.json");
+    if (r.ok) manifest = await r.json();
+  } catch (e) { /* no data yet — render the empty state */ }
+  const bundles = await Promise.all((manifest.datasets || []).map(async d => {
+    try {
+      const r = await fetch(`data/${d.id}.json`);
+      if (!r.ok) return null;
+      const bundle = await r.json();
+      bundle._datasetId = d.id;
+      return bundle;
+    } catch (e) { return null; }
+  }));
+  DATA = bundles.filter(Boolean).sort((a, b) => a.project.name.toLowerCase().localeCompare(b.project.name.toLowerCase()));
+  render();
+}
+loadData();

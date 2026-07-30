@@ -1,7 +1,8 @@
 ---
 name: tui-creator
 description: Guide and engine specification for building index-based tree/subtree Terminal User Interfaces (TUIs). Use when creating indexed menu tools (e.g. 11, 1a, 23), subtree drill-downs, theme selection with color swatches, or task-executing terminal interfaces.
-version: 2.1.0
+version: 3.0.0
+kind: hybrid
 triggers:
   - "create indexed TUI"
   - "build TUI script"
@@ -10,9 +11,8 @@ triggers:
   - "create subtree menu TUI"
   - "design indexed TUI"
 intent: system
-config_dir: ~/.config/skill-config/tui-creator
 created_at: 2026-07-28
-updated_at: 2026-07-28
+updated_at: 2026-07-29
 guardrails:
   - ALWAYS use the canonical template engine at <SKILL_PATH>/assets/tui_template.py. Do NOT write menu loops or ANSI rendering code from scratch.
   - ALWAYS place newly created TUI tools inside $TOOLS_PATH/<tui-name>/.
@@ -23,26 +23,34 @@ guardrails:
   - Pass terminal input/output (stdin/stdout/stderr) cleanly when executing sub-tasks.
   - Always support clean exit (0) and back navigation (b or 0) in submenus.
 resources:
-  - ./assets/tui_template.py
-  - ./scripts/scaffold_tui.py
-  - ./references/ANIMATIONS_AND_ICONS.md
-  - ./references/MENU_SCHEMA.json
+  - <SKILL_PATH>/assets/tui_template.py
+  - <SKILL_PATH>/scripts/scaffold_tui.py
+  - <SKILL_PATH>/references/ANIMATIONS_AND_ICONS.md
+  - <SKILL_PATH>/references/MENU_SCHEMA.json
 tools:
   - bash
 ---
 
 # TUI Creator
 
-## Skill Configuration
+## Defaults
 
-This skill uses `~/.config/skill-config/tui-creator/skill.properties` for user preferences.
+- `theme` — `obsidian` (also `dracula`, `nord`, `cyberpunk`, `emerald`)
+- `clamp_threshold` — `10`; above this many options on one screen, clamp into
+  parent categories and subtrees
+- `language` — `python` (also `bash`)
 
-Before generating a TUI, check if `~/.config/skill-config/tui-creator/` and `skill.properties` exist. If not, create them and notify the user: *"Creating configuration directory and default properties file for tui-creator."* Obtain user approval before saving new properties.
+Confirm these with the user at the start rather than assuming.
 
-### Common Properties
-- `default_theme`: `obsidian` | `dracula` | `nord` | `cyberpunk` | `emerald`
-- `clamp_threshold`: `10` (maximum total options displayed on a single screen before auto-clamping)
-- `default_language`: `python` | `bash`
+## Output
+
+`scripts/scaffold_tui.py` writes the spec and prints one line to stdout with the
+item count and the generated path; errors go to stderr. That path is the handle —
+read the generated file only if something needs checking.
+
+```
+✓ Generated TUI spec with 12 items at: /path/to/tool/menu.json
+```
 
 ---
 
@@ -105,5 +113,5 @@ Users can request TUIs via 3 simple methods:
 * **Method 3: Directory Auto-Discovery**
   Point the agent to a folder of scripts and run:
   ```bash
-  python3 <SKILL_PATH>/scripts/scaffold_tui.py --dir ~/workspace/scripts --out menu.json
+  python3 <SKILL_PATH>/scripts/scaffold_tui.py --dir $SCRIPTS_PATH --out menu.json
   ```

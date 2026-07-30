@@ -1,36 +1,23 @@
 ---
 name: skill-manifestor
-id: skill-manifestor
 description: Manifest a new hierarchy of modular skills following the Late-Binding Hierarchical Skill Framework.
-version: 1.1.0
+version: 2.0.0
+kind: guidance
 triggers:
   - "manifest a new skill hierarchy"
   - "create skills for [problem]"
   - "use skill-manifestor"
 intent: meta-skill
-config_dir: ~/.config/skill-config/skill-manifestor
 type: action
 parent: null
 mode_aware: true
 created_at: 2026-05-30
-updated_at: 2026-06-18
+updated_at: 2026-07-29
 ---
 
 # Skill Manifestor: Late-Binding Hierarchical Skill Framework
 
 This skill is the architect for the Late-Binding Hierarchical Skill Framework. It is used to design and manifest new skill hierarchies from a root parent level down to implementation-specific children.
-
-## Skill Configuration
-
-This skill uses `~/.config/skill-config/skill-manifestor/skill.properties` for state and defaults.
-
-Before starting, check if `~/.config/skill-config/skill-manifestor/` and `skill.properties` exist. If not, create them and notify the user: "Creating configuration directory and default properties file for skill-manifestor to track your hierarchy design session state." Any new property added or saved back to this file MUST be approved by the user beforehand. When loading the file, explicitly report the loaded entries to the user.
-
-### Common Properties
-- `last_namespace`: The last namespace worked on.
-- `preferred_language`: Default language for generated scripts.
-
-Before starting the Discovery Phase, check `~/.config/skill-config/skill-manifestor/skill.properties` to see if there's existing state for the current namespace to resume an interrupted design.
 
 ## [LIBRARY_MODE]
 **Trigger:** "Manifest a new skill hierarchy" or "Create skills for [Problem]."

@@ -16,7 +16,7 @@ manual nobody routes through, loaded whole into context whenever it triggers.
 
 ```
 skill-name/
-├── SKILL.md          # ≤150 lines — router only
+├── SKILL.md          # lean — router only
 └── references/
     ├── <topic-a>.md  # loaded only when the task touches topic A
     └── <topic-b>.md

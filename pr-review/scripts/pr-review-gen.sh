@@ -292,8 +292,13 @@ while [[ -f "${OUTPUT_DIR}/chunk_${CHUNK_ID}.diff" ]]; do
 done
 
 # ── done ─────────────────────────────────────────────────────────────────────
-echo
-success "Prompts saved to directory: ${BOLD}${OUTPUT_DIR}${RESET}"
-echo -e "  ${YELLOW}Total Chunks:${RESET} ${TOTAL_CHUNKS}"
-echo
+# Decoration on stderr; stdout carries only the handle and the chunk count so
+# callers can parse it without stripping ANSI codes.
+{
+  echo
+  success "Prompts saved to directory: ${BOLD}${OUTPUT_DIR}${RESET}"
+  echo -e "  ${YELLOW}Total Chunks:${RESET} ${TOTAL_CHUNKS}"
+  echo
+} >&2
+printf 'prompts_dir\t%s\nchunks\t%s\n' "$OUTPUT_DIR" "$TOTAL_CHUNKS"
 

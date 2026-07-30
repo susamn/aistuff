@@ -1,7 +1,7 @@
 ---
 name: skill-creator
 description: Guide for creating effective skills that extend different agents' capabilities. Use when creating new skills or updating existing skills with specialized knowledge, workflows, or tool integrations.
-version: 2.1.0
+version: 2.4.0
 kind: hybrid
 triggers:
   - "create a new skill"
@@ -12,21 +12,30 @@ guardrails:
   - Classify the skill before writing it. Guidance skills get zero scripts; pipeline skills keep judgment out of code.
   - A script must never dump raw data into agent context — emit a projection plus a handle to the full artifact.
   - SKILL.md is a router. Detail belongs in references/, loaded on demand.
+  - A skill update that changes behavior updates its prompts/ too, if it has one — stale examples are worse than none.
 resources:
   - <SKILL_PATH>/scripts/scaffold.sh
   - <SKILL_PATH>/references/frontmatter.md
   - <SKILL_PATH>/references/script-contract.md
   - <SKILL_PATH>/references/guidance-skills.md
+  - <SKILL_PATH>/references/data-app-skills.md
+  - <SKILL_PATH>/references/webapp-list-view.md
+  - <SKILL_PATH>/references/webapp-card-board.md
+  - <SKILL_PATH>/prompts/create-data-app-skill.md
+  - <SKILL_PATH>/prompts/migrate-to-data-app-skill.md
 tools:
   - bash
 created_at: 2026-05-30
-updated_at: 2026-07-29
+updated_at: 2026-07-30
 ---
 
 # Skill Creator
 
-Optional config: `~/.config/skill-config/skill-creator/skill.properties`
-(`default_author`, `auto_stow_after_creation`) — protocol in `references/frontmatter.md`.
+**Read `references/house-conventions.md` first.** It carries the path, tooling,
+deployment, and working-style conventions of this setup — a skill that ignores them
+is valid and still feels foreign. Optional config:
+`~/.config/skill-config/skill-creator/skill.properties` (`default_author`,
+`auto_stow_after_creation`), protocol in `references/frontmatter.md`.
 
 ## Step 0 — Classify before writing
 
@@ -98,33 +107,49 @@ Two counterweights, both real failure modes:
 
 ## Budgets
 
-- **SKILL.md ≤ 150 lines.** It is a router: what to do, when, and what to read next.
-- Everything longer belongs in `references/<topic>.md`, loaded on demand.
-- An oversized SKILL.md with no `references/` directory is precisely the failure
-  this budget exists to prevent.
+- **Keep SKILL.md lean — a router: what to do, when, and what to read next.**
+  Around 100–150 lines is typical; **200 is the hard ceiling.**
+- Do not contort prose to hit a line count. If a skill genuinely needs 180 lines of
+  always-relevant content, that is fine. Compressing sentences to win three lines
+  costs readability and buys nothing.
+- Past the ceiling, move whole topics to `references/<topic>.md` rather than
+  trimming words. An oversized SKILL.md with no `references/` is the actual failure
+  this guards against.
 
 ## Process
 
 1. **Classify** — pick the `kind`. State it and the reasoning to the user.
 2. **Understand** — gather concrete usage examples. For `pipeline`, name the exact
-   runtime input and the decision its output supports.
-3. **Scaffold** — `<SKILL_PATH>/scripts/scaffold.sh <name> --kind <kind>`
+   runtime input and the decision its output supports. Also ask: does this need
+   a live dashboard on mosaic, or is a generated report/artifact enough? If yes,
+   it's data-app-backed — `references/data-app-skills.md`.
+3. **Scaffold** — `<SKILL_PATH>/scripts/scaffold.sh <name> --kind <kind> [--webapp]`
 4. **Write** — fill SKILL.md against the budget. Reference skill-local scripts as
    `<SKILL_PATH>/scripts/<script>`; use `$TOOLS_PATH` / `$SCRIPTS_PATH` only for
    genuinely global utilities living outside the skill.
-5. **Register** — add a row to the `## Available skills` table in
+5. **Prompts** — write `<SKILL_PATH>/prompts/<topic>.md` now, while the skill's
+   purpose and triggers are freshest — this is the best time, not an
+   afterthought. Short, directly usable example prompts, one file per distinct
+   usage scenario. Skip it only when `triggers:` alone already says everything
+   there is to say; write it once usage has more than one shape (e.g. "create
+   new" vs. "migrate existing") or involves a reusable template worth saving —
+   see `skill-creator`'s own `prompts/` for what that looks like.
+6. **Register** — add a row to the `## Available skills` table in
    `~/dotfiles/skills/AGENTS-TEMPLATE.md`.
-6. **Deploy** — `bash ~/dotfiles/do-stow.sh`
-7. **Audit** — `~/dotfiles/skills/skill-manager/scripts/audit.sh <name>`.
+7. **Deploy** — `bash ~/dotfiles/do-stow.sh`
+8. **Audit** — `~/dotfiles/skills/skill-manager/scripts/audit.sh <name>`.
    Must pass before committing.
-8. **Commit** — `skills/` is a **git submodule**, so this is two commits:
+9. **Commit** — `skills/` is a **git submodule**, so this is two commits:
    ```bash
    git -C ~/dotfiles/skills add <name>/ AGENTS-TEMPLATE.md
    git -C ~/dotfiles/skills commit -m "skills: add <name>"
    git -C ~/dotfiles add skills
    git -C ~/dotfiles commit -m "skills: bump submodule for <name>"
    ```
-9. **Iterate** — improve from real usage.
+10. **Iterate** — improve from real usage. A behavior change is a prompts
+    change too: if `prompts/` exists, revisit it in the same pass. Stale
+    examples that no longer match current behavior are worse than no examples
+    at all — they get trusted and then fail.
 
 ## Enabling and disabling a skill
 
@@ -138,13 +163,18 @@ two sources drift. Detail: `dotfiles-management`.
 - Explanations a competent agent already has
 - Config ceremony in a skill with nothing to configure — `config_dir` is
   **optional**, declared only when the skill has real persistent state
-
-Skills are for agents, not humans. Include only what is needed to do the job.
+- Anything a competent agent already knows. Skills are for agents, not humans.
 
 ## Read next
 
 | file | when |
 |---|---|
+| `references/house-conventions.md` | **always — before writing or editing any skill** |
 | `references/frontmatter.md` | writing frontmatter; the config protocol |
 | `references/script-contract.md` | any `pipeline` skill — required |
 | `references/guidance-skills.md` | any `guidance` skill; splitting an oversized skill |
+| `references/data-app-skills.md` | skill needs a live mosaic dashboard, not just a report |
+| `references/webapp-list-view.md` | data-app's main view is a manifest-driven list with drill-down |
+| `references/webapp-card-board.md` | data-app is a single-page Trello/Keep-style card board |
+| `prompts/create-data-app-skill.md` | starting prompts for a brand-new data-app skill |
+| `prompts/migrate-to-data-app-skill.md` | reusable template for porting an existing skill onto mosaic |
