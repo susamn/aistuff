@@ -110,6 +110,16 @@ acme_widgets_42   reviewed   REQUEST_CHANGES   3 must-fix, 3 should-fix, 1 sugge
 <artifact>: /home/user/.local/share/mosaic/data/pr-review/manifest.json
 ```
 
+## Steady state, once onboarded to mosaic
+
+`mosaic_onboarded=true` is already set (`~/.config/skill-config/pr-review/skill.properties`).
+Routine invocations from here on — `fetch`, `persist-chunk`, `set-verdict` —
+are data-producing runs only: they write to
+`~/.local/share/mosaic/data/pr-review/`, and mosaic serves it automatically.
+Modifying `webapp/app.json`, `webapp/static/`, the onboarding symlink, or
+`scripts/run.sh`'s own logic is a distinct action, done only when the user
+explicitly asks for it — never as a side effect of reviewing a PR.
+
 ## Notes
 
 - Chunking is file-atomic, not a hard byte cap: the `MAX_CHUNK_SIZE`
