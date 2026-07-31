@@ -70,27 +70,29 @@ A skill is deployed only when its source directory is **not** suffixed `.disable
 - SKILL.md is a router — keep it lean, hard ceiling **200 lines**; detail goes in `references/`, loaded on demand.
 - `config_dir` is optional — declare it only when the skill has real persistent state.
 
-| Skill                           | Intent      | Trigger examples                                                                                                       | Created | Updated | Enabled |
-| ------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------- | ------- | ------- | ------- |
-| `pr-review`                     | code-review | "review this PR", "review pull request", "review <github-url>", "next chunk"                                           | 2026-05-30 | 2026-07-30 | Yes     |
-| `openapi-schema-creator`        | api-design  | "create an OpenAPI schema", "design an API"                                                                            | 2026-05-30 | 2026-05-30 | Yes     |
-| `skill-creator`                 | meta        | "create a new skill", "add a skill"                                                                                    | 2026-05-30 | 2026-05-30 | Yes     |
-| `music-tagger`                  | media       | "update media tags", "batch tag songs"                                                                                 | 2026-05-30 | 2026-05-30 | Yes     |
-| `obsidian`                      | notes       | "work with obsidian", "notes in obsidian"                                                                              | 2026-05-30 | 2026-05-30 | Yes     |
-| `model-usage`                   | metrics     | "model usage", "cost data"                                                                                             | 2026-05-30 | 2026-05-30 | No      |
-| `skill-manifestor`              | meta-skill  | "manifest a new skill hierarchy", "use skill-manifestor"                                                               | 2026-05-30 | 2026-05-30 | No      |
-| `dotfiles-management`           | system      | "manage dotfiles", "add a skill"                                                                                       | 2026-05-30 | 2026-05-30 | Yes     |
-| `java-generic`                  | execution   | "work on java project", "create java class"                                                                            | 2026-05-30 | 2026-05-30 | Yes     |
-| `python-generic`                | execution   | "work on python project", "create python script"                                                                       | 2026-05-30 | 2026-05-30 | Yes     |
-| `java-spring-framework-generic` | execution   | "work on java spring framework project", "create java spring framework class"                                          | 2026-05-30 | 2026-05-30 | Yes     |
-| `java-vulnerability-manager`    | execution   | "fix vulnerabilities in java project", "run cve scan", "fix transitive dependency", "owasp dependency check"           | 2026-05-30 | 2026-05-30 | Yes     |
-| `ai-lsp-query`                  | execution   | "find all references to", "who calls this function", "what type is this", "lsp query"                                  | 2026-05-30 | 2026-05-30 | Yes     |
-| `skill-manager`                | system      | "audit my skills", "check skill compliance", "manage skills"                                                           | 2026-05-30 | 2026-05-30 | Yes     |
-| global-applications-guidelines  | execution   | "want to build a new app", "lets work on a project", "lets create a new app"                                          | 2026-05-30 | 2026-05-30 | Yes     |
-| brainstorming                   | planning    | "lets brainstorm on an idea", "lets plan an idea", "lets plan a project", "lets think about an idea", "I have an idea" | 2026-05-30 | 2026-05-30 | Yes     |
-| `repo-reliability`              | analysis    | "analyze this repo", "repo reliability report", "how fragile is this project", "analyze commit patterns"               | 2026-07-28 | 2026-07-28 | Yes     |
-| `tui-creator`                  | system      | "create indexed TUI", "build TUI script", "create a TUI", "create subtree menu TUI"                                     | 2026-07-28 | 2026-07-28 | Yes     |
-| `systemd-service-creator`      | system      | "create systemd service", "create systemd timer", "scaffold systemd unit", "add personal service"                     | 2026-07-31 | 2026-07-31 | Yes     |
+| Skill                           | Intent      | Trigger examples                                                                                                       | Created | Updated | Source | Enabled |
+| ------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------- | ------- | ------- | ------ | ------- |
+| `pr-review`                     | code-review | "review this PR", "review pull request", "review <github-url>", "next chunk"                                           | 2026-05-30 | 2026-07-30 | built-in | Yes     |
+| `openapi-schema-creator`        | api-design  | "create an OpenAPI schema", "design an API"                                                                            | 2026-05-30 | 2026-05-30 | built-in | Yes     |
+| `skill-creator`                 | meta        | "create a new skill", "add a skill"                                                                                    | 2026-05-30 | 2026-05-30 | built-in | Yes     |
+| `music-tagger`                  | media       | "update media tags", "batch tag songs"                                                                                 | 2026-05-30 | 2026-05-30 | built-in | Yes     |
+| `obsidian`                      | notes       | "work with obsidian", "notes in obsidian"                                                                              | 2026-05-30 | 2026-05-30 | built-in | Yes     |
+| `model-usage`                   | metrics     | "model usage", "cost data"                                                                                             | 2026-05-30 | 2026-05-30 | built-in | No      |
+| `skill-manifestor`              | meta-skill  | "manifest a new skill hierarchy", "use skill-manifestor"                                                               | 2026-05-30 | 2026-05-30 | built-in | No      |
+| `dotfiles-management`           | system      | "manage dotfiles", "add a skill"                                                                                       | 2026-05-30 | 2026-05-30 | built-in | Yes     |
+| `java-generic`                  | execution   | "work on java project", "create java class"                                                                            | 2026-05-30 | 2026-05-30 | built-in | Yes     |
+| `python-generic`                | execution   | "work on python project", "create python script"                                                                       | 2026-05-30 | 2026-05-30 | built-in | Yes     |
+| `java-spring-framework-generic` | execution   | "work on java spring framework project", "create java spring framework class"                                          | 2026-05-30 | 2026-05-30 | built-in | Yes     |
+| `java-vulnerability-manager`    | execution   | "fix vulnerabilities in java project", "run cve scan", "fix transitive dependency", "owasp dependency check"           | 2026-05-30 | 2026-05-30 | built-in | Yes     |
+| `ai-lsp-query`                  | execution   | "find all references to", "who calls this function", "what type is this", "lsp query"                                  | 2026-05-30 | 2026-05-30 | built-in | Yes     |
+| `skill-manager`                | system      | "audit my skills", "check skill compliance", "manage skills"                                                           | 2026-05-30 | 2026-05-30 | built-in | Yes     |
+| global-applications-guidelines  | execution   | "want to build a new app", "lets work on a project", "lets create a new app"                                          | 2026-05-30 | 2026-05-30 | built-in | Yes     |
+| brainstorming                   | planning    | "lets brainstorm on an idea", "lets plan an idea", "lets plan a project", "lets think about an idea", "I have an idea" | 2026-05-30 | 2026-05-30 | built-in | Yes     |
+| `repo-reliability`              | analysis    | "analyze this repo", "repo reliability report", "how fragile is this project", "analyze commit patterns"               | 2026-07-28 | 2026-07-28 | built-in | Yes     |
+| `tui-creator`                  | system      | "create indexed TUI", "build TUI script", "create a TUI", "create subtree menu TUI"                                     | 2026-07-28 | 2026-07-28 | built-in | Yes     |
+| `systemd-service-creator`      | system      | "create systemd service", "create systemd timer", "scaffold systemd unit", "add personal service"                     | 2026-07-31 | 2026-07-31 | built-in | Yes     |
+| `skill-importer`               | meta        | "import a skill", "import skill from", "bring in skill", "add skill from github"                                       | 2026-07-31 | 2026-07-31 | built-in | Yes     |
+
 
 
 More skills will appear here as they are added to the dotfiles.
