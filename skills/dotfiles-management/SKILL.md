@@ -35,9 +35,9 @@ updated_at: 2026-07-29
 ```
 ~/dotfiles/
 ├── .config/            # app configs (Hyprland, kitty, nvim, waybar, rofi, …)
-├── aistuff/            # agent assets, NOT stowed to ~
+├── aistuff/            # git submodule — agent assets, NOT stowed to ~
 │   ├── mcp/                # MCP server definitions, synced by workspace/scripts/agm.sh
-│   └── skills/             # git submodule — canonical skills
+│   └── skills/             # canonical skills
 │       ├── .agents             # agent deployment config (4 columns, see below)
 │       ├── AGENTS-TEMPLATE.md  # source of every agent's instruction file
 │       └── <skill-name>/
@@ -130,8 +130,6 @@ gemini   ~/.gemini/skills   ~/.gemini/GEMINI.md   ~/.gemini/mcp.json
 cursor   ~/.cursor/rules    -                     ~/.cursor/mcp.json
 ```
 
-Then run `./do-stow.sh`. Because `aistuff/skills` is a submodule, committing is
-two steps: commit `.agents` inside `~/dotfiles/aistuff/skills`, then
-`git add aistuff/skills` in `~/dotfiles` to bump the submodule pointer.
-Note the submodule is still *named* `skills` in `.gitmodules` (its `path` is
-`aistuff/skills`) — git submodule names are independent of their paths.
+Then run `./do-stow.sh`. Because `aistuff` is a submodule, committing is
+two steps: commit changes inside `~/dotfiles/aistuff`, then
+`git add aistuff` in `~/dotfiles` to bump the submodule pointer.
