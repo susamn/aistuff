@@ -83,7 +83,12 @@ When a skill generates a standalone tool (a TUI, a utility):
 - A new skill must be registered in the `## Available skills` table of
   `AGENTS-TEMPLATE.md`, or it deploys unlisted.
 
+## Rclone sync profiles
+
+Store rclone sync configs in `~/dotfiles/.config/rclone-sync-profiles/<name>.conf` so they stow to `~/.config/` and stay version-controlled. Declare `REMOTE`, `REMOTE_PATH`, `LOCAL_PATH`, `SYNC_TYPE`, `DIRECTION`, `SCHEDULE`, and `RCLONE_OPTS` (e.g. `--exclude=/.git/**`). Attach any systemd service/timer to `personal-services.target`.
+
 ## Config
+
 
 `~/.config/skill-config/<skill-name>/skill.properties`, derived from `name` — never
 a hand-typed path. Declare `config_dir` only when the skill has real persistent
