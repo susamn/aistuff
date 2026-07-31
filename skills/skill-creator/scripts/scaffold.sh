@@ -4,7 +4,7 @@
 # exit 0 ok · 1 refused (exists / bad input) · 2 cannot run
 set -euo pipefail
 
-SKILLS_DIR="${SKILLS_DIR:-$HOME/dotfiles/skills}"
+SKILLS_DIR="${SKILLS_DIR:-$HOME/dotfiles/workspace/aistuff/skills}"
 NAME=""; KIND=""; WEBAPP=0
 
 die()  { echo "error: $*" >&2; exit "${2:-1}"; }

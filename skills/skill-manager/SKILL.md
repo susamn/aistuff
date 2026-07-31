@@ -34,8 +34,8 @@ about the findings, not on finding them.
 1. **Audit.** Whole set, or named skills:
 
    ```bash
-   ~/dotfiles/skills/skill-manager/scripts/audit.sh
-   ~/dotfiles/skills/skill-manager/scripts/audit.sh java-generic obsidian
+   ~/dotfiles/workspace/aistuff/skills/skill-manager/scripts/audit.sh
+   ~/dotfiles/workspace/aistuff/skills/skill-manager/scripts/audit.sh java-generic obsidian
    ```
 
    Output is one line per finding — `SEV  skill  check  message` — and nothing

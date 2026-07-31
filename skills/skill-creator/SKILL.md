@@ -135,15 +135,15 @@ Two counterweights, both real failure modes:
    new" vs. "migrate existing") or involves a reusable template worth saving —
    see `skill-creator`'s own `prompts/` for what that looks like.
 6. **Register** — add a row to the `## Available skills` table in
-   `~/dotfiles/skills/AGENTS-TEMPLATE.md`.
+   `~/dotfiles/workspace/aistuff/skills/AGENTS-TEMPLATE.md`.
 7. **Deploy** — `bash ~/dotfiles/do-stow.sh`
-8. **Audit** — `~/dotfiles/skills/skill-manager/scripts/audit.sh <name>`.
+8. **Audit** — `~/dotfiles/workspace/aistuff/skills/skill-manager/scripts/audit.sh <name>`.
    Must pass before committing.
-9. **Commit** — `skills/` is a **git submodule**, so this is two commits:
+9. **Commit** — `workspace/aistuff/` is a **git submodule**, so this is two commits:
    ```bash
-   git -C ~/dotfiles/skills add <name>/ AGENTS-TEMPLATE.md
-   git -C ~/dotfiles/skills commit -m "skills: add <name>"
-   git -C ~/dotfiles add skills
+   git -C ~/dotfiles/workspace/aistuff add skills/<name>/ skills/AGENTS-TEMPLATE.md
+   git -C ~/dotfiles/workspace/aistuff commit -m "skills: add <name>"
+   git -C ~/dotfiles add workspace/aistuff
    git -C ~/dotfiles commit -m "skills: bump submodule for <name>"
    ```
 10. **Iterate** — improve from real usage. A behavior change is a prompts
