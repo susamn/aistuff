@@ -1,0 +1,7 @@
+{
+  "example_metric": {
+    "direction": "higher_is_worse",
+    "warning": 5,
+    "critical": 15
+  }
+}

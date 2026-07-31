@@ -90,6 +90,8 @@ A skill is deployed only when its source directory is **not** suffixed `.disable
 | brainstorming                   | planning    | "lets brainstorm on an idea", "lets plan an idea", "lets plan a project", "lets think about an idea", "I have an idea" | 2026-05-30 | 2026-05-30 | Yes     |
 | `repo-reliability`              | analysis    | "analyze this repo", "repo reliability report", "how fragile is this project", "analyze commit patterns"               | 2026-07-28 | 2026-07-28 | Yes     |
 | `tui-creator`                  | system      | "create indexed TUI", "build TUI script", "create a TUI", "create subtree menu TUI"                                     | 2026-07-28 | 2026-07-28 | Yes     |
+| `systemd-service-creator`      | system      | "create systemd service", "create systemd timer", "scaffold systemd unit", "add personal service"                     | 2026-07-31 | 2026-07-31 | Yes     |
+
 
 More skills will appear here as they are added to the dotfiles.
 
