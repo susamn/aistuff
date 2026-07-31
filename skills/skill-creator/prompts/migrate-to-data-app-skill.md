@@ -16,7 +16,7 @@ Fill in `<skill-name>` and the "What `<skill-name>` currently does" section,
 then paste as the opening message of a fresh session:
 
 ```
-Migrate the <skill-name> skill (~/dotfiles/skills/<skill-name>/) into a
+Migrate the <skill-name> skill (~/dotfiles/aistuff/skills/<skill-name>/) into a
 data-app skill onboarded to mosaic (~/dotfiles/workspace/tools/mosaic/),
 following skill-creator's references/data-app-skills.md contract. Load the
 skill-creator skill first and read that reference doc before starting.

@@ -13,7 +13,7 @@ Scaffold command (generates `webapp/app.json` + `webapp/static/{index.html,
 js/app.js,css/style.css}`; refuses with `--kind guidance`):
 
 ```bash
-~/dotfiles/skills/skill-creator/scripts/scaffold.sh <name> --kind pipeline --webapp
+~/dotfiles/aistuff/skills/skill-creator/scripts/scaffold.sh <name> --kind pipeline --webapp
 ```
 
 Then follow `references/data-app-skills.md`'s "How to build one": the
