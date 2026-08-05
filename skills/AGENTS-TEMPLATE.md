@@ -148,19 +148,8 @@ Located at `$TOOLS_PATH`. Each tool has a `quick-start.sh` entry point.
 
 | Tool | Alias | What it does |
 |---|---|---|
-| `media-trimmer/` | `mtrm` | Web UI for trimming audio/video files |
+| `media-trimmer/` | `mt` | Web UI for trimming audio/video files |
 | `api-testing-tool/` | `att` | API testing tool |
 | `performance-manager/` | `pfm` | System performance monitor |
 | `helpful-tools-v2/` | `ht2` | Collection of helpful utilities |
 | `file-explorer/` | — | Remote file explorer (SFTP) |
-
-## External CLI tools
-
-Installed via Homebrew (or similar) rather than living under `$TOOLS_PATH`.
-
-| Tool | Alias | What it does |
-|---|---|---|
-| `mpdtui` | `mtx` | Full lazygit-style panel TUI for MPD |
-| `mpdtui --mini` | `mt` | Lightweight inline MPD status line/player |
-| `mpdtui -p` | `mtp` | Fuzzy-search playlists; Enter clears the queue and plays it |
-| `mpdtui -t` | `mtt` | Fuzzy-search tracks; Enter adds it to the queue and plays it |
