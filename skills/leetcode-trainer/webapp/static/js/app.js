@@ -1,8 +1,16 @@
 let MANIFEST = { problems: [] };
-let SELECTED = new Set();
 let ACTIVE_DIFFS = new Set();
 let QUERY = "";
 let CURRENT_SLUG = null;
+
+// "practiced" checkmarks — purely local UI state, kept in this browser's
+// localStorage (not mosaic data: it's a per-browser preference, not
+// something to back up or sync across machines).
+const DONE_KEY = "leetcode-trainer:done-slugs";
+let DONE = new Set(JSON.parse(localStorage.getItem(DONE_KEY) || "[]"));
+function saveDone() {
+  localStorage.setItem(DONE_KEY, JSON.stringify([...DONE]));
+}
 
 const grid = document.getElementById("grid");
 const emptyEl = document.getElementById("empty");
@@ -31,41 +39,23 @@ function matches(p) {
   return hay.includes(QUERY);
 }
 
-function renderBulkBar() {
-  const slot = document.getElementById("bulk-bar-slot");
-  slot.innerHTML = "";
-  if (!SELECTED.size) return;
-  const bar = document.createElement("div");
-  bar.className = "bulk-bar";
-  bar.innerHTML = `<span class="count">${SELECTED.size} selected</span>
-    <button class="bulk-delete-btn">Delete selected</button>
-    <button class="bulk-clear-btn">Clear</button>`;
-  bar.querySelector(".bulk-clear-btn").onclick = () => { SELECTED.clear(); renderList(); };
-  bar.querySelector(".bulk-delete-btn").onclick = async () => {
-    const ids = [...SELECTED];
-    if (!confirm(`Delete ${ids.length} problem(s)? This cannot be undone.`)) return;
-    const results = await Promise.allSettled(ids.map(deleteProblem));
-    const succeeded = ids.filter((_, i) => results[i].status === "fulfilled");
-    MANIFEST.problems = MANIFEST.problems.filter(p => !succeeded.includes(p.id));
-    succeeded.forEach(id => SELECTED.delete(id));
-    renderList();
-    const failed = ids.length - succeeded.length;
-    if (failed) alert(`${failed} of ${ids.length} could not be deleted.`);
-  };
-  slot.appendChild(bar);
+function updateProgressBadge() {
+  const total = MANIFEST.problems.length;
+  document.getElementById("progress-badge").textContent =
+    total ? `${total} problems · ${DONE.size} done` : "";
 }
 
 function renderList() {
-  document.getElementById("progress-badge").textContent =
-    MANIFEST.problems.length ? `${MANIFEST.problems.length} problems` : "";
-  renderBulkBar();
+  updateProgressBadge();
   const visible = MANIFEST.problems.filter(matches);
   grid.innerHTML = "";
   emptyEl.hidden = visible.length > 0;
   visible.forEach(p => {
+    const isDone = DONE.has(p.id);
     const card = document.createElement("div");
-    card.className = "card pcard";
+    card.className = "card pcard" + (isDone ? " done" : "");
     card.innerHTML = `
+      <input type="checkbox" class="done-box" title="Mark as practiced" ${isDone ? "checked" : ""}>
       <div class="row1">
         <span class="lc-id">#${p.leetcode_id}</span>
         <span class="badge ${p.difficulty}">${p.difficulty}</span>
@@ -74,13 +64,21 @@ function renderList() {
       <div class="topics">${p.topics.map(escapeHtml).join(" &middot; ")}</div>
       <button class="del-btn" title="Delete this problem">&times;</button>`;
     card.onclick = () => openDetail(p.id);
+    card.querySelector(".done-box").onclick = (e) => {
+      e.stopPropagation();
+      if (e.target.checked) DONE.add(p.id); else DONE.delete(p.id);
+      saveDone();
+      card.classList.toggle("done", e.target.checked);
+      updateProgressBadge();
+    };
     card.querySelector(".del-btn").onclick = async (e) => {
       e.stopPropagation();
       if (!confirm(`Delete "${p.title}"? This cannot be undone.`)) return;
       try {
         await deleteProblem(p.id);
         MANIFEST.problems = MANIFEST.problems.filter(x => x.id !== p.id);
-        SELECTED.delete(p.id);
+        DONE.delete(p.id);
+        saveDone();
         renderList();
       } catch (err) {
         alert(`Could not delete: ${err.message}`);
@@ -108,6 +106,13 @@ document.querySelectorAll(".diff-chip").forEach(btn => {
     renderList();
   };
 });
+document.getElementById("clear-done-btn").onclick = () => {
+  if (!DONE.size) return;
+  if (!confirm(`Clear all ${DONE.size} "practiced" mark(s)? This can't be undone.`)) return;
+  DONE.clear();
+  saveDone();
+  renderList();
+};
 
 // ── detail view ───────────────────────────────────────────────────────
 async function openDetail(slug) {

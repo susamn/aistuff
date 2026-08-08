@@ -49,6 +49,11 @@ h1 span { color: var(--muted); font-weight: 400; font-size: 14px; margin-left: 8
 .diff-chip.active[data-diff="Easy"] { border-color: var(--easy); color: var(--easy); background: var(--easy-bg); }
 .diff-chip.active[data-diff="Medium"] { border-color: var(--medium); color: var(--medium); background: var(--medium-bg); }
 .diff-chip.active[data-diff="Hard"] { border-color: var(--hard); color: var(--hard); background: var(--hard-bg); }
+.clear-btn {
+  margin-left: auto; font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--card); color: var(--muted); cursor: pointer;
+}
+.clear-btn:hover { color: var(--hard); border-color: var(--hard); }
 
 /* ── list grid ── */
 .grid {
@@ -58,11 +63,25 @@ h1 span { color: var(--muted); font-weight: 400; font-size: 14px; margin-left: 8
   background: var(--card); border: 1px solid var(--line); border-radius: 10px;
   padding: 14px 16px; position: relative;
 }
-.pcard { cursor: pointer; transition: border-color .15s, transform .1s; }
+.pcard { cursor: pointer; transition: border-color .15s, transform .1s; padding-left: 42px; }
 .pcard:hover { border-color: var(--accent); }
+.pcard.done { border-color: var(--easy); background: var(--easy-bg); }
+.pcard.done h3 { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--easy); }
 .pcard .row1 { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .pcard .lc-id { color: var(--muted); font-size: 12px; }
 .pcard h3 { font-size: 15px; margin: 4px 0 8px; font-weight: 600; }
+.pcard .done-box {
+  appearance: none; -webkit-appearance: none; margin: 0;
+  position: absolute; top: 14px; left: 14px; width: 18px; height: 18px;
+  border: 1.5px solid var(--line); border-radius: 5px; background: var(--card);
+  cursor: pointer; transition: background .15s, border-color .15s;
+}
+.pcard .done-box:hover { border-color: var(--easy); }
+.pcard .done-box:checked { background: var(--easy); border-color: var(--easy); }
+.pcard .done-box:checked::after {
+  content: ""; position: absolute; left: 5px; top: 1px; width: 5px; height: 9px;
+  border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg);
+}
 .pcard .del-btn {
   position: absolute; top: 8px; right: 8px; width: 22px; height: 22px;
   display: flex; align-items: center; justify-content: center; border-radius: 50%;
@@ -76,13 +95,6 @@ h1 span { color: var(--muted); font-weight: 400; font-size: 14px; margin-left: 8
 .badge.Medium { color: var(--medium); background: var(--medium-bg); }
 .badge.Hard   { color: var(--hard);   background: var(--hard-bg); }
 .empty { text-align: center; color: var(--muted); padding: 60px 0; }
-
-/* ── bulk delete bar ── */
-.bulk-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
-.bulk-bar .count { font-size: 13px; color: var(--muted); }
-.bulk-bar button { font: inherit; font-size: 13px; padding: 5px 12px; border-radius: 6px; cursor: pointer; }
-.bulk-delete-btn { border: 1px solid var(--hard); background: var(--hard-bg); color: var(--hard); }
-.bulk-clear-btn { border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
 
 /* ── detail view ── */
 .detail-header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
