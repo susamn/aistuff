@@ -1,0 +1,7 @@
+{
+  "id": "leetcode-trainer",
+  "name": "LeetCode Trainer",
+  "description": "Practice problems with Problem / Intuition / Solution tabs (Python + Go)",
+  "version": "1.0.0",
+  "entry": "index.html"
+}

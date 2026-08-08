@@ -92,6 +92,7 @@ A skill is deployed only when its source directory is **not** suffixed `.disable
 | `tui-creator`                  | system      | "create indexed TUI", "build TUI script", "create a TUI", "create subtree menu TUI"                                     | 2026-07-28 | 2026-07-28 | built-in | Yes     |
 | `systemd-service-creator`      | system      | "create systemd service", "create systemd timer", "scaffold systemd unit", "add personal service"                     | 2026-07-31 | 2026-07-31 | built-in | Yes     |
 | `skill-importer`               | meta        | "import a skill", "import skill from", "bring in skill", "add skill from github"                                       | 2026-07-31 | 2026-07-31 | built-in | Yes     |
+| `leetcode-trainer`              | execution   | "practice leetcode", "add this leetcode problem", "swap out a leetcode problem", "open the leetcode dashboard"        | 2026-08-08 | 2026-08-08 | built-in | Yes     |
 
 
 

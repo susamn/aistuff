@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LeetCode Trainer</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>LeetCode Trainer <span id="progress-badge"></span></h1>
+    <div class="header-controls">
+      <a href="/mosaic/" class="home-link">&larr; mosaic</a>
+    </div>
+  </header>
+
+  <!-- ── list view ─────────────────────────────────────────────────── -->
+  <section id="list-view">
+    <div class="controls">
+      <input id="search" type="search" placeholder="Search by title or topic&hellip;" autocomplete="off">
+      <div class="diff-filters" id="diff-filters">
+        <button class="diff-chip" data-diff="Easy">Easy</button>
+        <button class="diff-chip" data-diff="Medium">Medium</button>
+        <button class="diff-chip" data-diff="Hard">Hard</button>
+      </div>
+    </div>
+    <div id="bulk-bar-slot"></div>
+    <div id="grid" class="grid"></div>
+    <div id="empty" class="empty" hidden>No problems match.</div>
+  </section>
+
+  <!-- ── detail view ───────────────────────────────────────────────── -->
+  <section id="detail-view" hidden>
+    <a href="#" id="back-link" class="crumb">&larr; back to list</a>
+    <div class="detail-header">
+      <h2 id="d-title"></h2>
+      <span id="d-difficulty" class="badge"></span>
+      <span id="d-topics" class="topics"></span>
+      <a id="d-source" href="#" target="_blank" rel="noopener" class="source-link">original on LeetCode &#8599;</a>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="problem" role="tab">Problem</button>
+      <button class="tab-btn" data-tab="intuition" role="tab">Intuition</button>
+      <button class="tab-btn" data-tab="solution" role="tab">Solution</button>
+    </div>
+
+    <div id="tab-problem" class="tab-panel" data-panel="problem">
+      <div id="p-statement" class="md"></div>
+      <h4>Examples</h4>
+      <div id="p-examples"></div>
+      <h4 id="p-constraints-h" hidden>Constraints</h4>
+      <ul id="p-constraints"></ul>
+    </div>
+
+    <div id="tab-intuition" class="tab-panel" data-panel="intuition" hidden>
+      <div id="i-summary" class="md callout"></div>
+      <div id="i-approach" class="md"></div>
+      <div id="i-diagram"></div>
+      <div class="complexity-row">
+        <span><strong>Time:</strong> <code id="i-time"></code></span>
+        <span><strong>Space:</strong> <code id="i-space"></code></span>
+      </div>
+    </div>
+
+    <div id="tab-solution" class="tab-panel" data-panel="solution" hidden>
+      <div class="lang-tabs" role="tablist">
+        <button class="lang-btn active" data-lang="python" role="tab">Python</button>
+        <button class="lang-btn" data-lang="golang" role="tab">Go</button>
+      </div>
+      <div id="lang-python" class="lang-panel">
+        <pre><code id="s-python-code"></code></pre>
+        <div id="s-python-notes" class="md notes"></div>
+      </div>
+      <div id="lang-golang" class="lang-panel" hidden>
+        <pre><code id="s-golang-code"></code></pre>
+        <div id="s-golang-notes" class="md notes"></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+<script src="js/app.js"></script>
+</body>
+</html>
