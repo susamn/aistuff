@@ -158,14 +158,21 @@ accepts the broken configuration and runs nothing.
 
 ### Music sync and MPD
 
+Tracks and playlists arrive by **different mechanisms**. Audio is an rclone sync
+from Drive on a timer. Playlists and lyrics are the `music-metadata` **git** repo,
+pulled by hand — do not add a systemd unit to automate that pull: the SSH key is
+passphrase-protected, so it has no way to authenticate and would fail every run.
+
 `~/.config/mpd/mpd.conf` is **generated**, not stowed — `mpdc configure` rebuilds
-it from the version-controlled `mpd.conf.bak` template plus two rclone-sync
-profiles, so direct edits to `mpd.conf` are silently discarded. A profile's
-`LOCAL_PATH` is the single source of truth for where music lives; changing it
-without re-running `mpdc configure` leaves MPD pointed at the old directory.
+it from the version-controlled `mpd.conf.bak` template, taking `music_directory`
+from the tracks profile's `LOCAL_PATH` and `playlist_directory` from a path it
+asks for. Direct edits to `mpd.conf` are silently discarded. The template ships
+`playlist_directory "@PLAYLIST_DIR@"`, a placeholder rather than a real path, so
+an unconfigured `mpd.conf` fails loudly instead of pointing MPD somewhere nobody
+chose.
 
 Read `references/music-sync-and-mpd.md` before editing a sync profile, moving the
-library, or debugging a sync that ran but changed nothing.
+library, retiring a sync, or debugging a sync that ran but changed nothing.
 
 ### Read next
 
