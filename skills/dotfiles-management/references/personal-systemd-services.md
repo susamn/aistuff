@@ -88,14 +88,42 @@ Three filters keep that listing honest:
   contributed its live instances — otherwise every instance lists twice.
 - A template's glob carries the unit suffix, so `rclone-sync@` does not match both
   `.service` and `.timer` instances.
-- A **timer-driven `Type=oneshot` service is hidden** in the status view, because
-  it is inactive between runs by design and listing it beside its own timer
-  reports a healthy sync as "stopped". The filter keys on `TriggeredBy`, so a
-  oneshot whose timer is *disabled* stays visible — that one is a real problem.
+- A **timer-driven `Type=oneshot` service is pulled out of the main list**,
+  because it is inactive between runs by design and listing it beside its own
+  timer reports a healthy sync as "stopped". The filter keys on `TriggeredBy`, so
+  a oneshot whose timer is *disabled* stays in the main list — that one is a real
+  problem.
 
 `--failed-personal` and `--manage-personal` deliberately do **not** apply that
 last filter: a failed oneshot is exactly what the failed view exists to surface,
 and a manual run is still useful.
+
+### Cross-referencing, not hiding
+
+Pulling those services out entirely left "where is the service?" with no answer.
+The status view now marks the timer and accounts for what it activates in a
+second section:
+
+```
+● [system] rclone-sync@music-tracks.timer (active/running) ──activates──▶ (B)
+
+Timer-activated units:
+  (B) [system] rclone-sync@music-tracks.service
+      ✗ last run FAILED (exit-code) at Mon 2026-08-17 16:00:00 EDT · next 16:30:00
+```
+
+The second section is what makes a *failed* oneshot visible in the ordinary
+status view rather than only under `--failed-personal`. Nothing prints when no
+timer-driven unit was filtered, so a listing without timers is unchanged.
+
+Two implementation notes, both pinned by `test_regressions.py`:
+
+- The marker generator increments a global. Reading it back through `$( )` runs
+  the increment in a subshell, and every timer comes out as `(A)` pointing at one
+  detail line. It must be called for its side effect.
+- `systemctl show -p A -p B --value` returns values in **systemd's** property
+  order, not the order of the arguments. Batching silently transposes the fields;
+  query one property per call.
 
 ---
 
