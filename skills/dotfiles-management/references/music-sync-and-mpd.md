@@ -123,7 +123,55 @@ MPD reads playlists solely from `playlist_directory`
 > the deletion first (remove them at the source, let one sync run), then add the
 > exclude as a guard.
 
-## 6. Management commands
+## 6. The MPD daemon
+
+`mpd.service` is a **user** unit that comes from the distro package. It is *not*
+installed by `linux-system-manager`, *not* in `$SERVICES_PATH`, and *not* a member
+of `personal-services.target` — so it will never appear under `asm` → 51. Manage
+it with `mpdc`, which wraps `systemctl --user`:
+
+```bash
+mpdc start | stop | restart      # this session
+mpdc enable                      # enable + start, persists across reboot
+mpdc disable                     # stop + disable
+mpdc daemon-status               # systemctl --user status mpd.service
+```
+
+Being a user unit, it dies at logout unless **lingering** is enabled
+(`loginctl enable-linger <user>` — it is, on this machine). That is the main
+reason linger matters here at all.
+
+### It depends on the sync, and nothing enforces that
+
+MPD reads `music_directory` and `playlist_directory` directly off disk. Those are
+populated by the `music-tracks` and `music-playlists` timers, which are **system**
+units with no ordering relationship to the user-scope MPD. On a fresh boot MPD can
+start before the first sync completes and index an empty or partial library.
+
+That is not an error state and needs no fix — `auto_update "yes"` means MPD
+notices files appearing and rescans. `mpc update` forces it; `mpc stats` shows the
+result.
+
+### Runtime state lives outside the repo
+
+`~/.local/share/mpd/` holds `mpd.db`, `mpdstate`, `sticker.sql`, `mpd.log` and the
+pid file. None of it is version-controlled and none of it should be — the database
+is derived from the library, and `mpdc configure` recreates the directory if it is
+missing. Deleting `mpd.db` is a safe way to force a full reindex.
+
+### Symptoms
+
+| symptom | cause |
+|---|---|
+| daemon runs, library empty | sync has not populated `music_directory` yet, or `mpd.conf` points at the old path after a `LOCAL_PATH` change without `mpdc configure` |
+| playlists missing | `playlist_directory` empty, or the playlists timer is not enabled |
+| playlists present but tracks unresolvable | `save_absolute_paths_in_playlists "no"` — entries are relative to `music_directory`, so the two must agree |
+| daemon gone after logout | lingering disabled |
+| config edits keep vanishing | you edited `mpd.conf` instead of `mpd.conf.bak` (§2) |
+
+---
+
+## 7. Management commands
 
 | command | alias | does |
 |---|---|---|
@@ -143,7 +191,7 @@ journalctl -u rclone-sync@music-playlists.service -n 50
 
 ---
 
-## 7. Adding a new synced music source
+## 8. Adding a new synced music source
 
 1. Create `~/dotfiles/.config/rclone-sync-profiles/<name>.conf` with the fields
    in §1. Use `DIRECTION="remote-to-local"` unless you intend local edits to
