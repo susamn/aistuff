@@ -107,11 +107,18 @@ A sync needs a **profile and nothing else**. Do not write per-profile unit files
 the profile name becomes the systemd instance, so `rclone-sync@music-tracks.service`
 runs `rclone-sync.sh music-tracks`.
 
+Either through the menu — `asm` → **62** (Create New Sync Profile), which writes
+into the dotfiles repo and links it into `~/.config` for you — or by hand:
+
 ```bash
 vim ~/dotfiles/.config/rclone-sync-profiles/<name>.conf
 cd ~/dotfiles && ./do-stow.sh
 asm   # → 55, pick the new profile
 ```
+
+Either way the file lands in the repo, so commit it. 62 resolves the repo via
+`$DOTFILES_DIR`, then by following an existing stowed profile, then from its own
+in-tree location — falling back to plain `~/.config` only outside a checkout.
 
 Profile fields: `REMOTE`, `REMOTE_PATH`, `LOCAL_PATH`, `SYNC_TYPE` (`one` |
 `bidirectional` | `mount`), `DIRECTION`, `SCHEDULE`, `USER`, `RCLONE_OPTS`.

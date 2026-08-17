@@ -1,7 +1,7 @@
 ---
 name: dotfiles-management
 description: Manage the dotfiles repository, stow packages, and configure agent skills. Use when adding a skill, modifying the stow setup, or working inside ~/dotfiles.
-version: 3.0.0
+version: 3.1.0
 kind: guidance
 triggers:
   - "manage dotfiles"
@@ -18,6 +18,7 @@ resources:
   - ~/dotfiles/do-unstow.sh
   - ~/dotfiles/workspace/aistuff/skills/AGENTS-TEMPLATE.md
   - <SKILL_PATH>/references/service-installation.md
+  - <SKILL_PATH>/references/linux-system-manager-development.md
   - <SKILL_PATH>/references/personal-systemd-services.md
   - <SKILL_PATH>/references/music-sync-and-mpd.md
 tools:
@@ -146,6 +147,10 @@ inspect them from `asm` → Section 5: **54** shows what is installed, **55**
 installs or updates. Never hand-write per-profile unit files — an rclone sync
 needs only a profile, since the profile name is the systemd instance.
 
+Changing the tool itself (menu capability, new distro, installer) — read
+`references/linux-system-manager-development.md`, which points at the tool's own
+maintainer guide at `$TOOLS_PATH/linux-system-manager/SKILL.md`.
+
 Membership in `personal-services.target` is declared by each unit's own
 `[Install]` section, not by the target, and `systemctl enable` writes that link
 whether or not the target exists. The failure modes here are silent: systemd
@@ -167,5 +172,6 @@ library, or debugging a sync that ran but changed nothing.
 | file | when |
 |---|---|
 | `references/service-installation.md` | installing on a new machine, adding a sync or service, what lands where |
+| `references/linux-system-manager-development.md` | changing the tool: menu items, new distro, installer, the traps that have bitten |
 | `references/personal-systemd-services.md` | `personal-services.target`, scope semantics, debugging a unit that "enabled fine" but never runs |
 | `references/music-sync-and-mpd.md` | rclone sync profiles, `mpd.conf` generation, music library paths |
