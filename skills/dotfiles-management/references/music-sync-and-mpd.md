@@ -87,12 +87,14 @@ profile's `SCHEDULE` and writes `/etc/systemd/system/rclone-sync@<profile>.timer
 then enables the timer. The profile name is the systemd instance, so
 `rclone-sync@music-tracks.service` runs `rclone-sync.sh music-tracks`.
 
-Bespoke per-sync units (`music-playlists.service` and friends, driven by
-`EnvironmentFile` + `MUSIC_SYNC_PROFILE`) still exist in
-`.config/systemd/user/` but are **disabled**. They duplicate what `%i` does for
-free, and having both enabled means each library syncs twice per interval with
-two `rclone sync` processes able to overlap on one destination. Keep exactly one
-enabled.
+There is deliberately no second mechanism. Hand-written per-sync units once
+existed (`music-playlists.service` and friends, passing the profile name via
+`EnvironmentFile` + `MUSIC_SYNC_PROFILE`); they were removed because `%i`
+supplies that for free, and running both meant each library synced twice per
+interval with two `rclone sync` processes able to overlap on one destination.
+
+Do not reintroduce per-profile unit files. A new sync needs a profile and a
+`SCHEDULE`, nothing more.
 
 ## 5. Keeping playlists out of the music directory
 
