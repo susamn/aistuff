@@ -1,7 +1,7 @@
 ---
 name: dotfiles-management
 description: Manage the dotfiles repository, stow packages, and configure agent skills. Use when adding a skill, modifying the stow setup, or working inside ~/dotfiles.
-version: 2.2.0
+version: 3.0.0
 kind: guidance
 triggers:
   - "manage dotfiles"
@@ -17,6 +17,7 @@ resources:
   - ~/dotfiles/do-stow.sh          # repo root, not skill-relative
   - ~/dotfiles/do-unstow.sh
   - ~/dotfiles/workspace/aistuff/skills/AGENTS-TEMPLATE.md
+  - <SKILL_PATH>/references/service-installation.md
   - <SKILL_PATH>/references/personal-systemd-services.md
   - <SKILL_PATH>/references/music-sync-and-mpd.md
 tools:
@@ -136,18 +137,19 @@ Then run `./do-stow.sh`. Because `workspace/aistuff` is a submodule, committing 
 two steps: commit changes inside `~/dotfiles/workspace/aistuff`, then
 `git add workspace/aistuff` in `~/dotfiles` to bump the submodule pointer.
 
-### Personal systemd services
+### Services
 
-Stow places unit *files*; it does not make systemd aware of them. `do-stow.sh`
-must be followed by `systemctl --user daemon-reload`, and membership in
-`personal-services.target` is declared by each unit's own `[Install]` section —
-not by the target. The target itself is owned by `linux-system-manager` and only
-symlinked from dotfiles.
+`linux-system-manager` is an in-tree tool at `$TOOLS_PATH/linux-system-manager`
+(absorbed from its standalone repo; history on the `lsm-history/*` branches).
+Unit files and engines live in `$SERVICES_PATH`, not inside the tool. Install and
+inspect them from `asm` → Section 5: **54** shows what is installed, **55**
+installs or updates. Never hand-write per-profile unit files — an rclone sync
+needs only a profile, since the profile name is the systemd instance.
 
-The failure modes here are silent: systemd accepts the broken configuration and
-runs nothing. Read `references/personal-systemd-services.md` before adding a
-personal service or timer, moving one between scopes, or diagnosing one that
-"enabled fine" but never runs.
+Membership in `personal-services.target` is declared by each unit's own
+`[Install]` section, not by the target, and `systemctl enable` writes that link
+whether or not the target exists. The failure modes here are silent: systemd
+accepts the broken configuration and runs nothing.
 
 ### Music sync and MPD
 
@@ -164,5 +166,6 @@ library, or debugging a sync that ran but changed nothing.
 
 | file | when |
 |---|---|
-| `references/personal-systemd-services.md` | adding/moving/debugging a personal service or timer, or touching `personal-services.target` |
+| `references/service-installation.md` | installing on a new machine, adding a sync or service, what lands where |
+| `references/personal-systemd-services.md` | `personal-services.target`, scope semantics, debugging a unit that "enabled fine" but never runs |
 | `references/music-sync-and-mpd.md` | rclone sync profiles, `mpd.conf` generation, music library paths |

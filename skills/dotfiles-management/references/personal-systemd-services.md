@@ -1,105 +1,101 @@
-# Personal systemd services: ownership and deployment flow
+# personal-services.target and scope semantics
 
-How `personal-services.target` and the units grouped under it are owned, deployed,
-and discovered. Read when adding a personal service or timer, moving one between
-scopes, or diagnosing why one is not showing up.
+What the target is, how membership works, and the silent failure modes around it.
+Read when adding a personal service or timer, or diagnosing one that "enabled
+fine" but never runs.
+
+For *installing* services, see `service-installation.md`.
 
 The failures in this area are all **silent** — systemd accepts the broken
-configuration and simply never runs anything. None of them surface as an error.
+configuration and runs nothing. None of them surface as an error.
 
 ---
 
-## 1. Two scopes, two targets, one name
+## 1. What the target is
 
-`personal-services.target` exists **twice**, once per systemd manager. They are
-not duplicates: the system and user managers share no namespace, so these are
-unrelated units that happen to share a name. They are distinguished by directory.
+`personal-services.target` is a grouping unit meaning **"services this user
+owns"**, as distinct from OS-level services. It carries no behaviour: nothing
+depends on it running, it exists so `linux-system-manager` Section 5 can answer
+"what background work is mine?"
+
+It ships in `$SERVICES_PATH/personal-services.target` and is installed to
+`/etc/systemd/system/` — system scope, `WantedBy=multi-user.target`.
+
+The tool's **own** units (`sys-manager-cleanup`) deliberately do not claim it.
+The target describes your services, not the tool's maintenance jobs.
+
+---
+
+## 2. Two managers, no shared namespace
+
+systemd runs a **system** manager and a per-user manager, and they share nothing.
+A unit name in one is unrelated to the same name in the other.
 
 | | system scope | user scope |
 |---|---|---|
-| canonical file | `$TOOLS_PATH/linux-system-manager/services/personal-services.target` | `$TOOLS_PATH/linux-system-manager/services/user/personal-services.target` |
-| `WantedBy=` | `multi-user.target` | `default.target` |
-| installed to | `/etc/systemd/system/` | `~/.config/systemd/user/` |
-| installed by | `sudo ./install.py` (copies, root-owned) | stow, from the dotfiles symlink |
-| runs without login | yes | no |
-| use for | daemons, boot-time work | anything needing `$HOME`, session D-Bus, per-user rclone config |
+| units in | `/etc/systemd/system/` | `~/.config/systemd/user/` |
+| managed with | `sudo systemctl …` | `systemctl --user …` |
+| valid `WantedBy` | `multi-user.target` | `default.target` |
+| runs without a login session | yes | only with lingering enabled |
 
-> **Never "de-duplicate" these by deleting one.** `multi-user.target` does not
-> exist in the user manager. A user unit declaring `WantedBy=multi-user.target`
-> does not error — `systemctl --user enable` accepts it, writes the symlink, and
-> the unit then never activates. That is quieter than a failure and much harder
-> to spot.
+> **`multi-user.target` does not exist in the user manager.** A user unit
+> declaring `WantedBy=multi-user.target` does **not** error — `systemctl --user
+> enable` accepts it, writes the symlink, and the unit then never activates.
+> That is quieter than a failure and much harder to spot.
 
-Choosing the scope is the only judgment call here: if the unit needs `$HOME`, a
-login session, or a per-user credential, it is user scope. Otherwise system.
+**Never `sudo systemctl --user`.** That addresses *root's* user manager, not
+yours: the unit is enabled for the wrong account and reports success.
 
----
-
-## 2. Ownership: linux-system-manager owns content, dotfiles owns placement
-
-```
-linux-system-manager/services/user/personal-services.target   ← canonical content
-                    ▲
-                    │  relative symlink, checked into dotfiles
-dotfiles/.config/systemd/user/personal-services.target
-                    ▲
-                    │  symlink created by do-stow.sh
-~/.config/systemd/user/personal-services.target               ← what systemd reads
-```
-
-- **linux-system-manager owns the file.** Edits go there. It is a submodule of
-  dotfiles, so dotfiles still pins the version via the gitlink — "tracked by
-  dotfiles" stays true, just transitively.
-- **dotfiles owns only the placement** — an ~80-byte symlink recording *where* the
-  unit should land. No content is duplicated, so nothing can drift.
-- `install.py` **skips** any destination already symlinked to its own source and
-  reports it as externally managed, so stow keeps ownership of user scope.
-
-The system-scope target never touches `~/.config`. It is copied to
-`/etc/systemd/system/` by `install.py` and is root-owned — outside stow's reach
-entirely. A copy there is correct, not drift.
+Section 5 queries **both** managers and tags each result `[system]` or `[user]`,
+so a unit in either shows up. In practice everything currently lives in system
+scope, with `User=` set to the owning account.
 
 ---
 
-## 3. Deployment flow — and the step that is easy to miss
-
-```
-1. ./do-stow.sh
-     places the unit FILE at ~/.config/systemd/user/ (symlink chain).
-     systemd does not notice yet.
-
-2. systemctl --user daemon-reload
-     rescans the unit dir; target goes not-found → loaded.
-     ← REQUIRED. Stow alone is never enough.
-
-3. systemctl --user enable personal-services.target
-     adds it to default.target.wants/ so it comes up at login.
-
-4. membership — already declared by the units themselves (see below)
-
-5. linux-system-manager Section 5 then discovers it:
-     systemctl --user list-dependencies personal-services.target
-```
-
-## 4. Membership comes from the member, not the target
+## 3. Membership comes from the member, not the target
 
 The target does not list what belongs to it. **Each unit** claims it, in its own
 `[Install]` section:
 
 ```ini
-# music-playlists.timer
 [Install]
 WantedBy=timers.target personal-services.target
 ```
 
-`systemctl --user enable <unit>` reads that line and writes a symlink into
+`systemctl enable <unit>` reads that line and writes a symlink into
 `personal-services.target.wants/` — **whether or not the target exists.** `enable`
 does not validate that the wanted target resolves.
 
-Consequence: a `.wants` directory full of links pointing into nothing is the
-normal symptom of "units enabled before the target was deployed." Adding the
-target file does not create the membership; it makes membership that was already
-declared finally resolve.
+Consequence: a `.wants` directory full of links pointing at nothing is the normal
+symptom of "units enabled before the target was installed". Installing the target
+does not create the membership; it makes membership that was already declared
+finally resolve.
+
+---
+
+## 4. How Section 5 discovers units
+
+Two sources, merged and de-duplicated:
+
+1. **Target dependencies** — `systemctl list-dependencies personal-services.target`
+   in both managers. This is what is actually *enabled*.
+2. **`$SERVICES_PATH` directory scan** — unit files that ship but may not be
+   enabled yet, so a fresh checkout still lists what it has.
+
+Three filters keep that listing honest:
+
+- A **template** from the directory scan is suppressed when the target already
+  contributed its live instances — otherwise every instance lists twice.
+- A template's glob carries the unit suffix, so `rclone-sync@` does not match both
+  `.service` and `.timer` instances.
+- A **timer-driven `Type=oneshot` service is hidden** in the status view, because
+  it is inactive between runs by design and listing it beside its own timer
+  reports a healthy sync as "stopped". The filter keys on `TriggeredBy`, so a
+  oneshot whose timer is *disabled* stays visible — that one is a real problem.
+
+`--failed-personal` and `--manage-personal` deliberately do **not** apply that
+last filter: a failed oneshot is exactly what the failed view exists to surface,
+and a manual run is still useful.
 
 ---
 
@@ -107,46 +103,38 @@ declared finally resolve.
 
 ```bash
 # Does the target exist in the scope you think it does?
-systemctl --user show personal-services.target -p LoadState -p UnitFileState -p FragmentPath
 systemctl        show personal-services.target -p LoadState -p UnitFileState -p FragmentPath
+systemctl --user show personal-services.target -p LoadState -p UnitFileState -p FragmentPath
 
 # What does it actually group?
-systemctl --user list-dependencies personal-services.target --plain --no-legend
+systemctl list-dependencies personal-services.target --plain --no-legend
 
 # Dangling members: links in .wants that resolve to nothing
-for f in ~/.config/systemd/user/personal-services.target.wants/*; do
+for f in /etc/systemd/system/personal-services.target.wants/*; do
   [ -e "$f" ] || echo "DANGLING: $f"
 done
 
-# User units wanting a target that cannot exist in user scope
+# A user unit wanting a target that cannot exist in user scope
 grep -l 'WantedBy=.*multi-user.target' ~/.config/systemd/user/*.{service,timer} 2>/dev/null
 ```
 
 | symptom | cause |
 |---|---|
-| `LoadState=not-found` after stowing | no `daemon-reload` |
-| target loaded, `UnitFileState=disabled` | never enabled; will not come up at login |
-| `.wants` populated but target not-found | units enabled before the target was deployed |
+| `LoadState=not-found` after installing | no `daemon-reload` |
+| target loaded, `UnitFileState=disabled` | never enabled; will not come up at boot |
+| `.wants` populated but target not-found | units enabled before the target was installed |
 | user unit enables fine but never runs | `WantedBy=multi-user.target` in user scope |
 | unit invisible to Section 5 | wrong scope, or membership never declared in `[Install]` |
-
-Note that linux-system-manager also lists **system**-scope units from its own
-`services/` directory as a fallback, so those appear whether or not the system
-target exists. User scope has no such fallback for units living in dotfiles —
-`list-dependencies` against the target is their only discovery path.
+| oneshot shows "inactive/stopped" | normal **if** its timer is enabled; a real problem if not |
 
 ---
 
-## 6. Adding a new personal unit
+## 6. Lingering
 
-1. Decide the scope (§1). Personal config units live in
-   `dotfiles/.config/systemd/user/`; units that ship *with the tool* live in
-   `linux-system-manager/services/` or `services/user/`.
-2. Declare membership in the unit's own `[Install]`:
-   `WantedBy=timers.target personal-services.target`.
-3. `./do-stow.sh`, then `systemctl --user daemon-reload`.
-4. `systemctl --user enable --now <unit>`.
-5. Confirm with `systemctl --user list-dependencies personal-services.target`.
+`loginctl enable-linger <user>` starts the user manager at boot and keeps it
+running after logout. Without it, user units only run while you are logged in.
 
-**Never `sudo systemctl --user`.** That addresses root's user manager, not yours —
-the unit is enabled for the wrong account and reports success.
+It is **enabled** on this machine, but buys little in the current layout: the
+rclone syncs and mounts are system units and never needed it. It matters only for
+`mpd.service` and `battery-manager.timer`, and would matter a great deal if
+anything moved to user scope.
