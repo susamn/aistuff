@@ -164,5 +164,68 @@ running after logout. Without it, user units only run while you are logged in.
 
 It is **enabled** on this machine, but buys little in the current layout: the
 rclone syncs and mounts are system units and never needed it. It matters only for
-`mpd.service` and `battery-manager.timer`, and would matter a great deal if
-anything moved to user scope.
+`mpd.service`, `battery-manager.timer`, `conky.service`, and `eww.service`, and
+would matter a great deal if more moved to user scope.
+
+---
+
+## 7. Worked example: a GUI daemon in user scope (`eww.service`)
+
+A GUI/desktop-session tool (needs `WAYLAND_DISPLAY`/`DISPLAY`, the session D-Bus)
+**must** be user scope, not system scope — a system-scope unit has no session to
+draw into at all. Its unit file is hand-written and lives directly in
+`.config/systemd/user/` in dotfiles (stowed like `conky.service`), *not* under
+`$SERVICES_PATH` and *not* installed via `manage.py` — that tool only targets
+`/etc/systemd/system/` (see §2) and hardens with `ProtectSystem=strict` /
+`PrivateDevices=true`, which would cut a GUI daemon off from its own session.
+
+`eww.service` (backs the mpdtui lyrics widget — see mpdtui repo memory
+`project_lyrics_widget_setup`) hit two silent failure modes while being set up,
+both worth checking first if a *different* user-scope GUI daemon "runs" but
+doesn't actually work:
+
+- **`Type=forking` + a self-daemonizing binary races with itself.** `eww daemon`
+  double-forks on its own. `Type=forking` makes systemd *guess* which resulting
+  PID is the real one; when eww's own "is a daemon already running?" check found
+  a stale socket from a previous manual run, it killed the old one — and systemd's
+  PID guess landed on the process that had just been told to die, so the unit
+  reported a clean exit and (with `Restart=on-failure`) restart-looped every
+  ~20s. Fix: run with the tool's own foreground flag (`eww daemon
+  --no-daemonize`) and `Type=simple`, so systemd tracks the actual process
+  directly instead of guessing.
+- **A user unit's `PATH` is minimal and does not source shell rc files.**
+  `/usr/local/sbin:/usr/local/bin:/usr/bin:/bin` roughly — no
+  `/home/linuxbrew/.linuxbrew/bin`, no `nvm`/`pyenv`/cargo/go install
+  directories. A script the unit runs that shells out to a tool installed there
+  (e.g. `mpdtui`) fails to find it; if that script also redirects the tool's
+  stderr to `/dev/null` (common, to avoid polluting its own real output), the
+  failure is completely silent — no error anywhere, just an empty or stale
+  output file that looks like a data/logic bug. Fix: add an explicit
+  `Environment=PATH=...` to `[Service]` rather than relying on inheritance.
+  Check with `cat /proc/<pid>/environ | tr '\0' '\n' | grep ^PATH=` against the
+  unit's actual running PID when something that works in an interactive shell
+  mysteriously doesn't under the unit.
+- **`deflisten`/`defpoll` scripts only run while some open window uses their
+  variable — eww kills the script the moment the last such window closes.**
+  The lyrics widget's auto-hide-when-not-playing logic first tried having its
+  own `deflisten` script call `eww close lyrics-window` on itself when MPD
+  wasn't playing. That closed the one window using the script's own variable,
+  which killed the script *from the outside*, mid-loop — nothing was left
+  running to ever call `eww open` again, so the widget stayed hidden forever
+  after the first pause. Fix: never close the window at all; keep it always
+  open and drive visibility with an *outer* `(revealer :reveal ...)` around
+  the whole widget instead, collapsing it to near-nothing rather than
+  unmapping it — the script (and its variable) stay alive the entire time.
+  Consequence: a *manual* `eww close <window>` on a window like this still
+  kills its backing script and empties `eww state` for that variable — that
+  part isn't fixable without abandoning "closing means closed". It's not
+  stuck, though: a manual `eww open <window>` afterward restarts the script
+  fresh and recovers within a couple of ticks, the same as at daemon startup
+  — there's just nothing watching for *that specific case* to auto-recover on
+  its own the way a pause/play cycle does.
+
+And the general §3 point still applies here: `WantedBy=default.target` alone is
+enough to auto-start at login, but **not** enough for Section 5 to see it —
+that needs `personal-services.target` in the same `WantedBy=` line too. Easy to
+add one and forget the other, since only the first is needed for the thing to
+visibly work.
