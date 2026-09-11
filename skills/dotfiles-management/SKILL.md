@@ -1,7 +1,7 @@
 ---
 name: dotfiles-management
 description: Manage the dotfiles repository, stow packages, and configure agent skills. Use when adding a skill, modifying the stow setup, or working inside ~/dotfiles.
-version: 2.0.0
+version: 3.1.0
 kind: guidance
 triggers:
   - "manage dotfiles"
@@ -17,12 +17,16 @@ resources:
   - ~/dotfiles/do-stow.sh          # repo root, not skill-relative
   - ~/dotfiles/do-unstow.sh
   - ~/dotfiles/workspace/aistuff/skills/AGENTS-TEMPLATE.md
+  - <SKILL_PATH>/references/service-installation.md
+  - <SKILL_PATH>/references/linux-system-manager-development.md
+  - <SKILL_PATH>/references/personal-systemd-services.md
+  - <SKILL_PATH>/references/music-sync-and-mpd.md
 tools:
   - bash
   - stow
   - git
 created_at: 2026-05-30
-updated_at: 2026-07-31
+updated_at: 2026-08-16
 ---
 # Dotfiles management
 
@@ -133,3 +137,48 @@ cursor   ~/.cursor/rules    -                     ~/.cursor/mcp.json
 Then run `./do-stow.sh`. Because `workspace/aistuff` is a submodule, committing is
 two steps: commit changes inside `~/dotfiles/workspace/aistuff`, then
 `git add workspace/aistuff` in `~/dotfiles` to bump the submodule pointer.
+
+### Services
+
+`linux-system-manager` is an in-tree tool at `$TOOLS_PATH/linux-system-manager`
+(absorbed from its standalone repo; history on the `lsm-history/*` branches).
+Unit files and engines live in `$SERVICES_PATH`, not inside the tool. Install and
+inspect them from `asm` → Section 5: **54** shows what is installed, **55**
+installs or updates. Never hand-write per-profile unit files — an rclone sync
+needs only a profile, since the profile name is the systemd instance.
+
+Changing the tool itself (menu capability, new distro, installer) — read
+`references/linux-system-manager-development.md`, which points at the tool's own
+maintainer guide at `$TOOLS_PATH/linux-system-manager/SKILL.md`.
+
+Membership in `personal-services.target` is declared by each unit's own
+`[Install]` section, not by the target, and `systemctl enable` writes that link
+whether or not the target exists. The failure modes here are silent: systemd
+accepts the broken configuration and runs nothing.
+
+### Music sync and MPD
+
+Tracks and playlists arrive by **different mechanisms**. Audio is an rclone sync
+from Drive on a timer. Playlists and lyrics are the `music-metadata` **git** repo,
+pulled by hand — do not add a systemd unit to automate that pull: the SSH key is
+passphrase-protected, so it has no way to authenticate and would fail every run.
+
+`~/.config/mpd/mpd.conf` is **generated**, not stowed — `mpdc configure` rebuilds
+it from the version-controlled `mpd.conf.bak` template, taking `music_directory`
+from the tracks profile's `LOCAL_PATH` and `playlist_directory` from a path it
+asks for. Direct edits to `mpd.conf` are silently discarded. The template ships
+`playlist_directory "@PLAYLIST_DIR@"`, a placeholder rather than a real path, so
+an unconfigured `mpd.conf` fails loudly instead of pointing MPD somewhere nobody
+chose.
+
+Read `references/music-sync-and-mpd.md` before editing a sync profile, moving the
+library, retiring a sync, or debugging a sync that ran but changed nothing.
+
+### Read next
+
+| file | when |
+|---|---|
+| `references/service-installation.md` | installing on a new machine, adding a sync or service, what lands where |
+| `references/linux-system-manager-development.md` | changing the tool: menu items, new distro, installer, the traps that have bitten |
+| `references/personal-systemd-services.md` | `personal-services.target`, scope semantics, debugging a unit that "enabled fine" but never runs |
+| `references/music-sync-and-mpd.md` | rclone sync profiles, `mpd.conf` generation, music library paths |
