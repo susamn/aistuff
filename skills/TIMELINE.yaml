@@ -1,0 +1,145 @@
+categories:
+  - path: engineering
+    skills:
+      - name: pr-review
+        intent: code-review
+        trigger_examples:
+          - "review this PR"
+          - "review pull request"
+          - "review <github-url>"
+          - "next chunk"
+
+      - name: openapi-schema-creator
+        intent: api-design
+        trigger_examples:
+          - "create an OpenAPI schema"
+          - "design an API"
+
+      - name: obsidian
+        intent: notes
+        trigger_examples:
+          - "work with obsidian"
+          - "notes in obsidian"
+
+      - name: java-generic
+        intent: execution
+        trigger_examples:
+          - "work on java project"
+          - "create java class"
+
+      - name: python-generic
+        intent: execution
+        trigger_examples:
+          - "work on python project"
+          - "create python script"
+
+      - name: java-spring-framework-generic
+        intent: execution
+        trigger_examples:
+          - "work on java spring framework project"
+          - "create java spring framework class"
+
+      - name: java-vulnerability-manager
+        intent: execution
+        trigger_examples:
+          - "fix vulnerabilities in java project"
+          - "run cve scan"
+          - "fix transitive dependency"
+          - "owasp dependency check"
+
+      - name: ai-lsp-query
+        intent: execution
+        trigger_examples:
+          - "find all references to"
+          - "who calls this function"
+          - "what type is this"
+          - "lsp query"
+
+  - path: personal
+    skills:
+      - name: skill-creator
+        intent: meta
+        trigger_examples:
+          - "create a new skill"
+          - "add a skill"
+
+      - name: music-tagger
+        intent: media
+        trigger_examples:
+          - "update media tags"
+          - "batch tag songs"
+
+      - name: dotfiles-management
+        intent: system
+        trigger_examples:
+          - "manage dotfiles"
+          - "add a skill"
+
+      - name: skill-manager
+        intent: system
+        trigger_examples:
+          - "audit my skills"
+          - "check skill compliance"
+          - "manage skills"
+
+      - name: repo-reliability
+        intent: analysis
+        trigger_examples:
+          - "analyze this repo"
+          - "repo reliability report"
+          - "how fragile is this project"
+          - "analyze commit patterns"
+
+      - name: tui-creator
+        intent: system
+        trigger_examples:
+          - "create indexed TUI"
+          - "build TUI script"
+          - "create a TUI"
+          - "create subtree menu TUI"
+
+      - name: systemd-service-creator
+        intent: system
+        trigger_examples:
+          - "create systemd service"
+          - "create systemd timer"
+          - "scaffold systemd unit"
+          - "add personal service"
+
+  - path: deprecated
+    skills:
+      - name: model-usage
+        path: model-usage.disabled
+        intent: metrics
+        trigger_examples:
+          - "model usage"
+          - "cost data"
+
+      - name: skill-manifestor
+        path: skill-manifestor.disabled
+        intent: meta-skill
+        trigger_examples:
+          - "manifest a new skill hierarchy"
+          - "use skill-manifestor"
+
+  - path: in-progress
+    skills:
+      - name: brainstorming
+        intent: planning
+        trigger_examples:
+          - "lets brainstorm on an idea"
+          - "lets plan an idea"
+          - "lets plan a project"
+          - "lets think about an idea"
+          - "I have an idea"
+
+  - path: .
+    skills:
+      - name: global-applications-guidelines
+        intent: execution
+        trigger_examples:
+          - "want to build a new app"
+          - "lets work on a project"
+          - "lets create a new app"
+
+note: Skills folder and timeline. This will be modified as new skills are created or updated. Skills under the "deprecated" category are disabled (suffixed `.disabled` on disk).
